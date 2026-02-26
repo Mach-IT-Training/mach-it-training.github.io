@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computing Fundamentals Part 1 - Performance Based Questions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg-primary:#1a1d29; --bg-secondary:#242938; --bg-tertiary:#2d3348;
+            --accent-primary:#6366f1; --accent-secondary:#8b5cf6;
+            --accent-success:#10b981; --accent-warning:#f59e0b; --accent-error:#ef4444;
+            --text-primary:#f3f4f6; --text-secondary:#9ca3af; --border-color:#374151;
+        }
+        body { font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); line-height:1.6; }
+        .container { max-width:1200px; margin:0 auto; padding:20px; }
+
+        header {
+            text-align:center; padding:30px 20px;
+            background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));
+            border-radius:12px; margin-bottom:30px;
+        }
+        header h1 { font-size:2.2em; font-weight:700; margin-bottom:8px; }
+        header .subtitle { font-size:1.1em; opacity:0.9; }
+
+        .scenario-box {
+            background:var(--bg-secondary); border-radius:12px; padding:25px; margin-bottom:25px;
+            border-left:5px solid var(--accent-warning);
+        }
+        .scenario-box h2 { color:var(--accent-warning); margin-bottom:12px; font-size:1.4em; }
+
+        .task-container { background:var(--bg-secondary); border-radius:12px; padding:25px; margin-bottom:25px; }
+        .task-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .task-number { background:var(--accent-primary); color:#fff; padding:8px 16px; border-radius:20px; font-weight:700; }
+
+        .workspace { background:var(--bg-primary); border:2px solid var(--border-color); border-radius:8px; padding:20px; margin:20px 0; min-height:200px; }
+        
+        .component-pool {
+            display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; margin:20px 0;
+        }
+        .component-item {
+            background:var(--bg-tertiary); padding:14px; border-radius:8px; border:2px solid var(--border-color);
+            cursor:move; text-align:center; transition:all .25s; user-select:none;
+        }
+        .component-item:hover { border-color:var(--accent-primary); transform:translateY(-2px); }
+        .component-item.dragging { opacity:0.5; }
+
+        .drop-zone {
+            background:var(--bg-primary); border:2px dashed var(--border-color); border-radius:8px;
+            padding:20px; margin:10px 0; min-height:80px; transition:all .25s;
+        }
+        .drop-zone.drag-over { border-color:var(--accent-primary); background:rgba(99,102,241,.1); }
+        .drop-zone.filled { border-color:var(--accent-success); border-style:solid; }
+        .drop-zone-label { font-weight:600; color:var(--accent-secondary); margin-bottom:8px; font-size:1.05em; }
+
+        .calculator-interface {
+            background:var(--bg-tertiary); border-radius:8px; padding:20px; max-width:400px; margin:20px auto;
+        }
+        .calc-display {
+            background:var(--bg-primary); border:2px solid var(--border-color); padding:15px;
+            font-family:'JetBrains Mono',monospace; font-size:1.3em; text-align:right; border-radius:6px;
+            margin-bottom:15px; min-height:50px; color:var(--accent-success);
+        }
+        .calc-input-row { display:grid; grid-template-columns:2fr 1fr 1fr; gap:10px; margin-bottom:10px; }
+        .calc-input-row input, .calc-input-row select {
+            background:var(--bg-primary); border:2px solid var(--border-color); color:var(--text-primary);
+            padding:10px; border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:1em;
+        }
+        .calc-button {
+            background:var(--accent-primary); color:#fff; border:none; padding:12px; border-radius:6px;
+            cursor:pointer; font-weight:600; transition:all .25s; width:100%;
+        }
+        .calc-button:hover { background:var(--accent-secondary); transform:translateY(-2px); }
+
+        .comparison-table {
+            background:var(--bg-primary); border-radius:8px; padding:15px; margin:20px 0;
+            display:grid; grid-template-columns:repeat(3, 1fr); gap:15px;
+        }
+        .spec-card {
+            background:var(--bg-tertiary); padding:15px; border-radius:6px; border:2px solid var(--border-color);
+            text-align:center; cursor:pointer; transition:all .25s;
+        }
+        .spec-card:hover { border-color:var(--accent-primary); transform:scale(1.03); }
+        .spec-card.selected { border-color:var(--accent-success); background:rgba(16,185,129,.15); }
+        .spec-card.wrong { border-color:var(--accent-error); background:rgba(239,68,68,.15); }
+        .spec-value { font-size:1.4em; font-weight:700; color:var(--accent-primary); margin:8px 0; }
+        .spec-label { color:var(--text-secondary); font-size:0.9em; }
+
+        .bios-screen {
+            background:#000; color:#0f0; font-family:'Courier New',monospace; padding:20px;
+            border-radius:8px; border:3px solid #333; min-height:400px; font-size:0.9em;
+            position:relative;
+        }
+        .bios-menu { margin:15px 0; }
+        .bios-option {
+            padding:8px 15px; margin:5px 0; cursor:pointer; border-left:4px solid transparent;
+        }
+        .bios-option:hover { background:#0f0; color:#000; border-left-color:#0f0; }
+        .bios-option.selected { background:#0a0; color:#000; border-left-color:#ff0; }
+
+        button {
+            background:var(--accent-primary); color:#fff; border:none; padding:12px 24px;
+            border-radius:6px; font-weight:600; cursor:pointer; transition:all .25s;
+            font-family:'Inter',sans-serif; font-size:1em; margin:5px;
+        }
+        button:hover { background:var(--accent-secondary); transform:translateY(-2px); }
+        button.secondary { background:var(--bg-tertiary); border:2px solid var(--border-color); }
+
+        .feedback { margin-top:15px; padding:15px; border-radius:8px; display:none; }
+        .feedback.show { display:block; animation:slideIn .3s ease; }
+        @keyframes slideIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+        .feedback.success { background:rgba(16,185,129,.2); border-left:4px solid var(--accent-success); }
+        .feedback.error { background:rgba(239,68,68,.2); border-left:4px solid var(--accent-error); }
+
+        .instructions {
+            background:rgba(99,102,241,.1); padding:15px; border-radius:8px; margin:15px 0;
+            border-left:4px solid var(--accent-primary);
+        }
+        .instructions ul { margin-left:20px; margin-top:8px; }
+        .instructions li { margin:5px 0; }
+
+        .answer-grid {
+            display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin:20px 0;
+        }
+        .answer-option {
+            background:var(--bg-tertiary); padding:15px; border-radius:8px; border:2px solid var(--border-color);
+            cursor:pointer; transition:all .25s; text-align:center;
+        }
+        .answer-option:hover { border-color:var(--accent-primary); transform:scale(1.03); }
+        .answer-option.selected { border-color:var(--accent-success); background:rgba(16,185,129,.15); }
+        .answer-option.correct { border-color:var(--accent-success); background:rgba(16,185,129,.2); }
+        .answer-option.incorrect { border-color:var(--accent-error); background:rgba(239,68,68,.2); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>⚡ Computing Fundamentals Part 1 - PBQ</h1>
+        <p class="subtitle">Performance-Based Questions: Demonstrate Your Skills</p>
+    </header>
+
+    <div class="scenario-box">
+        <h2>📋 Scenario</h2>
+        <p>You are an IT support technician for a small company. You've been asked to perform several hardware-related tasks and calculations to help with equipment planning and troubleshooting. Complete each task using the interactive simulations below.</p>
+    </div>
+
+    <!-- TASK 1: IDENTIFY COMPUTING FUNCTIONS -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 1: Classify Computer Components by Function</h3>
+            <span class="task-number">PBQ 1 of 5</span>
+        </div>
+        
+        <div class="instructions">
+            <strong>Instructions:</strong> A user is setting up a new workstation. Drag each component to the correct computing function category.
+        </div>
+
+        <div class="component-pool" id="componentPool1">
+            <div class="component-item" draggable="true" data-function="input">Barcode Scanner</div>
+            <div class="component-item" draggable="true" data-function="output">Bluetooth Speakers</div>
+            <div class="component-item" draggable="true" data-function="storage">Cloud Backup Service</div>
+            <div class="component-item" draggable="true" data-function="processing">CPU (Processor)</div>
+            <div class="component-item" draggable="true" data-function="storage">External SSD</div>
+            <div class="component-item" draggable="true" data-function="processing">Graphics Card GPU</div>
+            <div class="component-item" draggable="true" data-function="output">Laser Printer</div>
+            <div class="component-item" draggable="true" data-function="input">Microphone</div>
+        </div>
+
+        <div class="workspace">
+            <div class="drop-zone-label">INPUT (Data enters system)</div>
+            <div class="drop-zone" data-function="input" id="inputZone"></div>
+
+            <div class="drop-zone-label">PROCESSING (Data is manipulated)</div>
+            <div class="drop-zone" data-function="processing" id="processingZone"></div>
+
+            <div class="drop-zone-label">OUTPUT (Results are displayed)</div>
+            <div class="drop-zone" data-function="output" id="outputZone"></div>
+
+            <div class="drop-zone-label">STORAGE (Data is saved)</div>
+            <div class="drop-zone" data-function="storage" id="storageZone"></div>
+        </div>
+
+        <button onclick="checkTask1()">Submit Task 1</button>
+        <button class="secondary" onclick="resetTask1()">Reset</button>
+        <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <!-- TASK 2: DATA UNIT CONVERSIONS -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 2: Calculate Storage Requirements</h3>
+            <span class="task-number">PBQ 2 of 5</span>
+        </div>
+
+        <div class="instructions">
+            <strong>Scenario:</strong> Your company needs to back up 3,500 GB of data. Calculate how many terabytes this equals, and determine if your current 4 TB backup drive has enough capacity.
+            <ul>
+                <li>Enter the value and select units</li>
+                <li>Click "Convert" to see the result</li>
+                <li>Answer the capacity question below</li>
+            </ul>
+        </div>
+
+        <div class="calculator-interface">
+            <div class="calc-display" id="calcDisplay">Ready for calculation...</div>
+            <div class="calc-input-row">
+                <input type="number" id="dataValue" value="3500" placeholder="Value">
+                <select id="fromUnit">
+                    <option value="GB" selected>GB</option>
+                    <option value="KB">KB</option>
+                    <option value="MB">MB</option>
+                    <option value="TB">TB</option>
+                </select>
+                <select id="toUnit">
+                    <option value="GB">GB</option>
+                    <option value="KB">KB</option>
+                    <option value="MB">MB</option>
+                    <option value="TB" selected>TB</option>
+                </select>
+            </div>
+            <button class="calc-button" onclick="performConversion()">Convert</button>
+        </div>
+
+        <div class="instructions">
+            <strong>Question:</strong> Based on your calculation, will 3,500 GB fit on a 4 TB backup drive?
+        </div>
+
+        <div class="answer-grid">
+            <div class="answer-option" onclick="selectAnswer(this, false)">
+                <strong>No</strong><br>
+                <small>Insufficient capacity</small>
+            </div>
+            <div class="answer-option" onclick="selectAnswer(this, true)">
+                <strong>Yes</strong><br>
+                <small>Sufficient capacity</small>
+            </div>
+        </div>
+
+        <button onclick="checkTask2()">Submit Task 2</button>
+        <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <!-- TASK 3: COMPARE PROCESSOR SPEEDS -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 3: Select the Fastest Processor</h3>
+            <span class="task-number">PBQ 3 of 5</span>
+        </div>
+
+        <div class="instructions">
+            <strong>Scenario:</strong> Your department is purchasing new computers. You need to identify which processor offers the highest clock speed from the three options below.
+        </div>
+
+        <div class="comparison-table">
+            <div class="spec-card" onclick="selectProcessor(this, false)">
+                <div class="spec-label">Option A</div>
+                <div class="spec-value">2.8 GHz</div>
+                <div class="spec-label">Intel Core i5</div>
+            </div>
+            <div class="spec-card" onclick="selectProcessor(this, false)">
+                <div class="spec-label">Option B</div>
+                <div class="spec-value">3200 MHz</div>
+                <div class="spec-label">AMD Ryzen 5</div>
+            </div>
+            <div class="spec-card" onclick="selectProcessor(this, true)">
+                <div class="spec-label">Option C</div>
+                <div class="spec-value">3.6 GHz</div>
+                <div class="spec-label">Intel Core i7</div>
+            </div>
+        </div>
+
+        <button onclick="checkTask3()">Submit Task 3</button>
+        <div class="feedback" id="feedback3"></div>
+    </div>
+
+    <!-- TASK 4: TROUBLESHOOT COMPONENT FAILURE -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 4: Diagnose Hardware Failure</h3>
+            <span class="task-number">PBQ 4 of 5</span>
+        </div>
+
+        <div class="instructions">
+            <strong>Scenario:</strong> A user reports: "My computer starts up, but I keep getting blue screen errors and the system randomly freezes. Sometimes it won't boot at all and gives beeping sounds."
+            <br><br>
+            Based on the symptoms, identify which component is MOST LIKELY failing.
+        </div>
+
+        <div class="answer-grid">
+            <div class="answer-option" onclick="selectDiagnosis(this, false)">
+                <strong>CPU</strong><br>
+                <small>Central Processor</small>
+            </div>
+            <div class="answer-option" onclick="selectDiagnosis(this, false)">
+                <strong>Hard Drive</strong><br>
+                <small>Storage Device</small>
+            </div>
+            <div class="answer-option" onclick="selectDiagnosis(this, false)">
+                <strong>Motherboard</strong><br>
+                <small>Main Circuit Board</small>
+            </div>
+            <div class="answer-option" onclick="selectDiagnosis(this, false)">
+                <strong>Power Supply</strong><br>
+                <small>PSU</small>
+            </div>
+            <div class="answer-option" onclick="selectDiagnosis(this, true)">
+                <strong>RAM</strong><br>
+                <small>Memory Modules</small>
+            </div>
+            <div class="answer-option" onclick="selectDiagnosis(this, false)">
+                <strong>Video Card</strong><br>
+                <small>Graphics Card</small>
+            </div>
+        </div>
+
+        <button onclick="checkTask4()">Submit Task 4</button>
+        <div class="feedback" id="feedback4"></div>
+    </div>
+
+    <!-- TASK 5: CONFIGURE BIOS SETTINGS -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 5: Configure BIOS Boot Order</h3>
+            <span class="task-number">PBQ 5 of 5</span>
+        </div>
+
+        <div class="instructions">
+            <strong>Scenario:</strong> You need to install Windows from a USB drive. Configure the BIOS boot order so the system boots from the USB drive first, then the internal hard drive.
+            <br><br>
+            <strong>Instructions:</strong> Click on each device in the correct boot order (1st, 2nd, 3rd).
+        </div>
+
+        <div class="bios-screen">
+            <div style="border-bottom:1px solid #0f0; padding-bottom:10px; margin-bottom:15px;">
+                BIOS SETUP UTILITY - Boot Configuration<br>
+                Use mouse to select boot order (click in sequence)
+            </div>
+
+            <div class="bios-menu">
+                <strong>Select First Boot Device:</strong>
+                <div class="bios-option" data-device="cd" onclick="selectBootDevice(this, 1)">[ ] CD/DVD Drive</div>
+                <div class="bios-option" data-device="hdd" onclick="selectBootDevice(this, 1)">[ ] Hard Disk Drive</div>
+                <div class="bios-option" data-device="network" onclick="selectBootDevice(this, 1)">[ ] Network Boot (PXE)</div>
+                <div class="bios-option" data-device="usb" onclick="selectBootDevice(this, 1)">[ ] USB Storage Device</div>
+            </div>
+
+            <div class="bios-menu">
+                <strong>Select Second Boot Device:</strong>
+                <div class="bios-option" data-device="cd" onclick="selectBootDevice(this, 2)">[ ] CD/DVD Drive</div>
+                <div class="bios-option" data-device="hdd" onclick="selectBootDevice(this, 2)">[ ] Hard Disk Drive</div>
+                <div class="bios-option" data-device="network" onclick="selectBootDevice(this, 2)">[ ] Network Boot (PXE)</div>
+                <div class="bios-option" data-device="usb" onclick="selectBootDevice(this, 2)">[ ] USB Storage Device</div>
+            </div>
+
+            <div class="bios-menu">
+                <strong>Select Third Boot Device:</strong>
+                <div class="bios-option" data-device="cd" onclick="selectBootDevice(this, 3)">[ ] CD/DVD Drive</div>
+                <div class="bios-option" data-device="hdd" onclick="selectBootDevice(this, 3)">[ ] Hard Disk Drive</div>
+                <div class="bios-option" data-device="network" onclick="selectBootDevice(this, 3)">[ ] Network Boot (PXE)</div>
+                <div class="bios-option" data-device="usb" onclick="selectBootDevice(this, 3)">[ ] USB Storage Device</div>
+            </div>
+
+            <div style="margin-top:20px; border-top:1px solid #0f0; padding-top:10px;">
+                Current Boot Order: <span id="bootOrder">Not configured</span>
+            </div>
+        </div>
+
+        <button onclick="checkTask5()">Submit Task 5</button>
+        <button class="secondary" onclick="resetTask5()">Reset Boot Order</button>
+        <div class="feedback" id="feedback5"></div>
+    </div>
+
+</div>
+
+<script>
+// TASK 1: Drag and Drop Component Classification
+let draggedElement = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupDragAndDrop();
+});
+
+function setupDragAndDrop() {
+    const items = document.querySelectorAll('.component-item');
+    items.forEach(item => {
+        item.addEventListener('dragstart', e => {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+        });
+        item.addEventListener('dragend', e => {
+            e.target.classList.remove('dragging');
+        });
+    });
+
+    const zones = document.querySelectorAll('.drop-zone');
+    zones.forEach(zone => {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('drag-over');
+        });
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            if (draggedElement) {
+                zone.appendChild(draggedElement);
+                if (zone.children.length > 0) zone.classList.add('filled');
+            }
+        });
+    });
+}
+
+function checkTask1() {
+    const zones = document.querySelectorAll('#inputZone, #processingZone, #outputZone, #storageZone');
+    let correct = 0;
+    let total = 8;
+
+    zones.forEach(zone => {
+        const items = zone.querySelectorAll('.component-item');
+        items.forEach(item => {
+            if (item.dataset.function === zone.dataset.function) {
+                correct++;
+                item.style.borderColor = 'var(--accent-success)';
+            } else {
+                item.style.borderColor = 'var(--accent-error)';
+            }
+        });
+    });
+
+    const feedback = document.getElementById('feedback1');
+    feedback.className = 'feedback show ' + (correct === total ? 'success' : 'error');
+    
+    if (correct === total) {
+        feedback.innerHTML = `<strong>✓ Excellent! All components correctly classified.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br>
+        <strong>INPUT devices</strong> (Barcode Scanner, Microphone): Capture data and send it INTO the computer system. They convert physical input into digital signals.<br><br>
+        <strong>PROCESSING components</strong> (CPU, Graphics Card GPU): Manipulate and transform data. The CPU handles general computing, while the GPU specializes in parallel calculations for graphics.<br><br>
+        <strong>OUTPUT devices</strong> (Laser Printer, Bluetooth Speakers): Display or present processed results TO the user. They convert digital data into physical output (sound, printed pages).<br><br>
+        <strong>STORAGE devices</strong> (External SSD, Cloud Backup): Save data for later retrieval. Unlike volatile RAM, storage preserves data when power is off.<br><br>
+        <em>Key Concept: Some devices can serve multiple functions (e.g., touchscreens are both INPUT and OUTPUT), but each component here has one PRIMARY function.</em>`;
+    } else {
+        feedback.innerHTML = `<strong>You correctly classified ${correct} out of ${total} components.</strong><br><br>
+        <strong>Review Guide:</strong><br>
+        • <strong>INPUT</strong> = Data enters (scanner reads, microphone captures)<br>
+        • <strong>PROCESSING</strong> = Data is manipulated (CPU calculates, GPU renders)<br>
+        • <strong>OUTPUT</strong> = Results displayed (printer prints, speakers play)<br>
+        • <strong>STORAGE</strong> = Data preserved (SSD saves, cloud backs up)<br><br>
+        Review the incorrect items (marked in red) and consider: "Does this device bring data IN, process data, send data OUT, or save data for later?"`;
+    }
+}
+
+function resetTask1() {
+    const pool = document.getElementById('componentPool1');
+    const zones = document.querySelectorAll('.drop-zone');
+    
+    zones.forEach(zone => {
+        const items = zone.querySelectorAll('.component-item');
+        items.forEach(item => {
+            item.style.borderColor = '';
+            pool.appendChild(item);
+        });
+        zone.classList.remove('filled');
+    });
+    
+    document.getElementById('feedback1').className = 'feedback';
+}
+
+// TASK 2: Data Conversion Calculator
+let conversionResult = null;
+
+function performConversion() {
+    const value = parseFloat(document.getElementById('dataValue').value);
+    const from = document.getElementById('fromUnit').value;
+    const to = document.getElementById('toUnit').value;
+
+    const units = { KB: 1, MB: 1000, GB: 1000000, TB: 1000000000 };
+    const baseValue = value * units[from];
+    const result = baseValue / units[to];
+
+    conversionResult = result;
+    document.getElementById('calcDisplay').textContent = `${value} ${from} = ${result.toFixed(2)} ${to}`;
+}
+
+function selectAnswer(element, isCorrect) {
+    const siblings = element.parentElement.querySelectorAll('.answer-option');
+    siblings.forEach(s => s.classList.remove('selected'));
+    element.classList.add('selected');
+    element.dataset.correct = isCorrect;
+}
+
+function checkTask2() {
+    const selected = document.querySelector('.answer-grid .answer-option.selected');
+    const feedback = document.getElementById('feedback2');
+
+    if (!conversionResult) {
+        feedback.className = 'feedback show error';
+        feedback.textContent = '⚠ Please perform the conversion calculation first.';
+        return;
+    }
+
+    if (!selected) {
+        feedback.className = 'feedback show error';
+        feedback.textContent = '⚠ Please select an answer (Yes or No).';
+        return;
+    }
+
+    const isCorrect = selected.dataset.correct === 'true';
+    feedback.className = 'feedback show ' + (isCorrect ? 'success' : 'error');
+
+    if (isCorrect) {
+        selected.classList.add('correct');
+        feedback.innerHTML = `<strong>✓ Correct! 3,500 GB = 3.5 TB.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br>
+        <strong>Conversion Process:</strong> To convert GB to TB, divide by 1,000 (using decimal system).<br>
+        • 3,500 GB ÷ 1,000 = 3.5 TB<br><br>
+        <strong>Capacity Analysis:</strong><br>
+        • Required: 3.5 TB<br>
+        • Available: 4.0 TB<br>
+        • Remaining space: 4.0 - 3.5 = 0.5 TB (500 GB)<br><br>
+        <strong>Key Concepts:</strong><br>
+        • <strong>1 TB = 1,000 GB</strong> (decimal/marketing measurement)<br>
+        • <strong>1 GB = 1,000 MB</strong><br>
+        • <strong>1 MB = 1,000 KB</strong><br>
+        • Binary (1024) vs. Decimal (1000): Manufacturers use decimal (1000), which is why a "500 GB" drive shows as ~465 GB in Windows (which uses binary).<br><br>
+        <em>Pro Tip: Always leave 10-20% free space on backup drives for file system overhead and future growth.</em>`;
+    } else {
+        selected.classList.add('incorrect');
+        feedback.innerHTML = `<strong>✗ Incorrect.</strong><br><br>
+        <strong>How to Solve:</strong><br>
+        Remember: <strong>1 TB = 1,000 GB</strong><br><br>
+        <strong>Step 1:</strong> Convert 3,500 GB to TB<br>
+        • 3,500 GB ÷ 1,000 = 3.5 TB<br><br>
+        <strong>Step 2:</strong> Compare to available capacity<br>
+        • Need: 3.5 TB<br>
+        • Have: 4.0 TB<br>
+        • Result: 3.5 < 4.0, so it FITS<br><br>
+        The 4 TB drive can hold the data with 500 GB to spare.`;
+    }
+}
+
+// TASK 3: Processor Speed Comparison
+let selectedProcessor = null;
+
+function selectProcessor(element, isCorrect) {
+    const siblings = element.parentElement.querySelectorAll('.spec-card');
+    siblings.forEach(s => s.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedProcessor = { element, isCorrect };
+}
+
+function checkTask3() {
+    const feedback = document.getElementById('feedback3');
+
+    if (!selectedProcessor) {
+        feedback.className = 'feedback show error';
+        feedback.textContent = '⚠ Please select a processor option.';
+        return;
+    }
+
+    feedback.className = 'feedback show ' + (selectedProcessor.isCorrect ? 'success' : 'error');
+
+    if (selectedProcessor.isCorrect) {
+        selectedProcessor.element.classList.add('selected');
+        feedback.innerHTML = `<strong>✓ Correct! Option C at 3.6 GHz is fastest.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br>
+        <strong>Conversion Process:</strong><br>
+        To compare processor speeds, convert everything to the same unit (GHz).<br><br>
+        • <strong>Option A:</strong> 2.8 GHz = 2.8 GHz ✓<br>
+        • <strong>Option B:</strong> 3200 MHz ÷ 1,000 = 3.2 GHz ✓<br>
+        • <strong>Option C:</strong> 3.6 GHz = 3.6 GHz ✓<br><br>
+        <strong>Speed Ranking:</strong><br>
+        1st: 3.6 GHz (Option C) ← FASTEST<br>
+        2nd: 3.2 GHz (Option B)<br>
+        3rd: 2.8 GHz (Option A)<br><br>
+        <strong>Key Concepts:</strong><br>
+        • <strong>Hertz (Hz)</strong> = cycles per second<br>
+        • <strong>1 GHz = 1,000 MHz</strong> = 1 billion cycles/second<br>
+        • Higher frequency = more operations per second<br><br>
+        <em>Important Note: Clock speed alone doesn't determine overall performance. Architecture, cores, cache, and IPC (instructions per cycle) also matter significantly. A 3.2 GHz modern CPU can outperform a 3.6 GHz older CPU.</em>`;
+    } else {
+        selectedProcessor.element.classList.add('wrong');
+        const correct = document.querySelector('.spec-card[onclick*="true"]');
+        correct.classList.add('selected');
+        feedback.innerHTML = `<strong>✗ Incorrect.</strong><br><br>
+        <strong>How to Solve:</strong><br>
+        Convert all speeds to the same unit (GHz) by dividing MHz by 1,000:<br><br>
+        • Option A: 2.8 GHz (already in GHz)<br>
+        • Option B: 3200 MHz = 3200 ÷ 1,000 = <strong>3.2 GHz</strong><br>
+        • Option C: 3.6 GHz (already in GHz) ← HIGHEST<br><br>
+        The highest value is 3.6 GHz (Option C).<br><br>
+        <strong>Common Mistake:</strong> Assuming MHz is faster than GHz. Remember: GHz is 1,000× larger than MHz, so 3200 MHz = 3.2 GHz.`;
+    }
+}
+
+// TASK 4: Component Diagnosis
+let selectedDiagnosis = null;
+
+function selectDiagnosis(element, isCorrect) {
+    const siblings = element.parentElement.querySelectorAll('.answer-option');
+    siblings.forEach(s => s.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedDiagnosis = { element, isCorrect };
+}
+
+function checkTask4() {
+    const feedback = document.getElementById('feedback4');
+
+    if (!selectedDiagnosis) {
+        feedback.className = 'feedback show error';
+        feedback.textContent = '⚠ Please select a component.';
+        return;
+    }
+
+    feedback.className = 'feedback show ' + (selectedDiagnosis.isCorrect ? 'success' : 'error');
+
+    if (selectedDiagnosis.isCorrect) {
+        selectedDiagnosis.element.classList.add('correct');
+        feedback.innerHTML = `<strong>✓ Correct! RAM is the most likely cause.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br>
+        <strong>Symptom Analysis:</strong><br>
+        1. <strong>Blue screen errors (BSOD)</strong> - Classic RAM failure symptom. Memory errors cause system crashes.<br>
+        2. <strong>Random freezes</strong> - Corrupted RAM can't properly hold data, causing system hangs.<br>
+        3. <strong>Boot failures with beeps</strong> - POST (Power-On Self-Test) beep codes often indicate RAM not detected or faulty.<br><br>
+        <strong>Why Not Other Components?</strong><br>
+        • <strong>CPU:</strong> Complete failure → no boot. Partial failure → freezes during intensive tasks, not random.<br>
+        • <strong>Hard Drive:</strong> Slow performance, clicking sounds, file corruption. Doesn't cause blue screens.<br>
+        • <strong>Motherboard:</strong> Usually prevents boot entirely. May cause specific component failures.<br>
+        • <strong>Power Supply:</strong> Random shutdowns, reboots. System powers off completely, not freezes.<br>
+        • <strong>Video Card:</strong> Display artifacts, no video output. Doesn't affect system stability unless driver-related.<br><br>
+        <strong>Troubleshooting Steps:</strong><br>
+        1. Run Windows Memory Diagnostic or MemTest86<br>
+        2. Reseat RAM modules<br>
+        3. Test one RAM stick at a time<br>
+        4. Try RAM in different slots<br><br>
+        <em>Pro Tip: RAM is one of the most common failure points in computers because it's constantly being written to and accessed.</em>`;
+    } else {
+        selectedDiagnosis.element.classList.add('incorrect');
+        const correct = Array.from(document.querySelectorAll('.answer-option')).find(el => 
+            el.querySelector('strong').textContent === 'RAM');
+        correct.classList.add('correct');
+        feedback.innerHTML = `<strong>✗ Incorrect.</strong><br><br>
+        <strong>How to Diagnose:</strong><br>
+        Look at the symptom pattern:<br><br>
+        <strong>Key Clues:</strong><br>
+        • <strong>Blue screens</strong> = Memory errors<br>
+        • <strong>Random crashes/freezes</strong> = Unstable RAM<br>
+        • <strong>Beep codes during boot</strong> = Hardware detection failure (often RAM)<br><br>
+        <strong>Component Failure Patterns:</strong><br>
+        • <strong>RAM:</strong> Blue screens, random freezes, beep codes ← MATCHES<br>
+        • <strong>CPU:</strong> No boot OR freezes during heavy load only<br>
+        • <strong>HDD:</strong> Slow performance, boot errors, file corruption<br>
+        • <strong>PSU:</strong> Random shutdowns/reboots (power loss)<br>
+        • <strong>Motherboard:</strong> Complete boot failure<br>
+        • <strong>GPU:</strong> Display issues, not system instability<br><br>
+        The symptom pattern points directly to RAM failure.`;
+    }
+}
+
+// TASK 5: BIOS Boot Order
+let bootOrderSelections = { first: null, second: null, third: null };
+
+function selectBootDevice(element, position) {
+    const positionKey = position === 1 ? 'first' : position === 2 ? 'second' : 'third';
+    const device = element.dataset.device;
+    
+    // Clear previous selection for this position
+    const allOptions = document.querySelectorAll('.bios-option');
+    allOptions.forEach(opt => {
+        const text = opt.textContent;
+        if (text.startsWith('[' + position + ']')) {
+            opt.textContent = '[ ] ' + text.substring(4);
+            opt.classList.remove('selected');
+        }
+    });
+    
+    // Set new selection
+    bootOrderSelections[positionKey] = device;
+    element.classList.add('selected');
+    element.textContent = '[' + position + '] ' + element.textContent.substring(4);
+    
+    updateBootOrderDisplay();
+}
+
+function updateBootOrderDisplay() {
+    const deviceNames = {
+        usb: 'USB',
+        hdd: 'Hard Drive',
+        cd: 'CD/DVD',
+        network: 'Network'
+    };
+    
+    const order = [];
+    if (bootOrderSelections.first) order.push('1st: ' + deviceNames[bootOrderSelections.first]);
+    if (bootOrderSelections.second) order.push('2nd: ' + deviceNames[bootOrderSelections.second]);
+    if (bootOrderSelections.third) order.push('3rd: ' + deviceNames[bootOrderSelections.third]);
+    
+    document.getElementById('bootOrder').textContent = order.length ? order.join(' → ') : 'Not configured';
+}
+
+function checkTask5() {
+    const feedback = document.getElementById('feedback5');
+    
+    if (!bootOrderSelections.first || !bootOrderSelections.second || !bootOrderSelections.third) {
+        feedback.className = 'feedback show error';
+        feedback.textContent = '⚠ Please configure all three boot device positions.';
+        return;
+    }
+    
+    const isCorrect = bootOrderSelections.first === 'usb' && 
+                     bootOrderSelections.second === 'hdd';
+    
+    feedback.className = 'feedback show ' + (isCorrect ? 'success' : 'error');
+    
+    if (isCorrect) {
+        feedback.innerHTML = `<strong>✓ Perfect! Boot order configured correctly.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br>
+        <strong>Correct Boot Order:</strong><br>
+        1st: <strong>USB Storage Device</strong> ← Boots Windows installer<br>
+        2nd: <strong>Hard Disk Drive</strong> ← Normal boot after installation<br>
+        3rd: Any device (CD/DVD or Network are common choices)<br><br>
+        <strong>Why This Order?</strong><br>
+        • <strong>USB First:</strong> The Windows installation media is on the USB drive. The system needs to boot from it to run the installer.<br>
+        • <strong>HDD Second:</strong> After Windows is installed on the hard drive, you'll remove the USB. The system then boots from the HDD normally.<br>
+        • <strong>Third Device:</strong> Backup option if first two fail. Not critical for this scenario.<br><br>
+        <strong>Boot Process Explained:</strong><br>
+        1. BIOS/UEFI runs POST (Power-On Self-Test)<br>
+        2. BIOS checks boot order list<br>
+        3. Attempts to boot from 1st device (USB)<br>
+        4. If USB not found/bootable → tries 2nd device (HDD)<br>
+        5. Continues down the list until bootable device found<br><br>
+        <strong>Real-World Workflow:</strong><br>
+        1. Set boot order: USB → HDD<br>
+        2. Insert Windows USB, restart computer<br>
+        3. System boots from USB, install Windows to HDD<br>
+        4. Remove USB after installation<br>
+        5. System now boots from HDD automatically<br><br>
+        <em>Pro Tip: Modern systems often have a "Boot Menu" key (F12, F8, ESC) to temporarily select boot device without changing BIOS settings.</em>`;
+    } else {
+        feedback.innerHTML = `<strong>✗ Incorrect.</strong><br><br>
+        <strong>How to Configure Boot Order:</strong><br>
+        To install Windows from USB, you need:<br><br>
+        <strong>1st Boot Device: USB Storage Device</strong><br>
+        • Why? The Windows installer is ON the USB drive<br>
+        • The system must boot from USB to run the installer<br><br>
+        <strong>2nd Boot Device: Hard Disk Drive</strong><br>
+        • Why? After installation, Windows will be on the HDD<br>
+        • When you remove the USB, system boots from HDD normally<br><br>
+        <strong>Common Mistake:</strong> Setting HDD as 1st device means the system will try to boot from the (empty) hard drive first, never reaching the USB installer.<br><br>
+        <strong>Think of it like:</strong><br>
+        USB = temporary installer tool (use once)<br>
+        HDD = permanent Windows location (use forever)<br><br>
+        Boot order tells BIOS: "Try USB first (for installation), then HDD (for normal use)."`;
+    }
+}
+
+function resetTask5() {
+    bootOrderSelections = { first: null, second: null, third: null };
+    const allOptions = document.querySelectorAll('.bios-option');
+    allOptions.forEach(opt => {
+        opt.classList.remove('selected');
+        const text = opt.textContent;
+        if (text.match(/^\[\d\]/)) {
+            opt.textContent = '[ ] ' + text.substring(4);
+        }
+    });
+    document.getElementById('bootOrder').textContent = 'Not configured';
+    document.getElementById('feedback5').className = 'feedback';
+}
+</script>
+</body>
+</html>

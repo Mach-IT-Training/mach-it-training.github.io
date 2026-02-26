@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computing Fundamentals Part 2 - Performance Based Questions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg-primary:#1a1d29; --bg-secondary:#242938; --bg-tertiary:#2d3348;
+            --accent-primary:#6366f1; --accent-secondary:#8b5cf6;
+            --accent-success:#10b981; --accent-warning:#f59e0b; --accent-error:#ef4444;
+            --text-primary:#f3f4f6; --text-secondary:#9ca3af; --border-color:#374151;
+        }
+        body { font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); line-height:1.6; }
+        .container { max-width:1200px; margin:0 auto; padding:20px; }
+
+        header {
+            text-align:center; padding:30px 20px;
+            background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));
+            border-radius:12px; margin-bottom:30px;
+        }
+        header h1 { font-size:2.2em; font-weight:700; margin-bottom:8px; }
+        header .subtitle { font-size:1.1em; opacity:0.9; }
+
+        .scenario-box {
+            background:var(--bg-secondary); border-radius:12px; padding:25px; margin-bottom:25px;
+            border-left:5px solid var(--accent-warning);
+        }
+        .scenario-box h2 { color:var(--accent-warning); margin-bottom:12px; font-size:1.4em; }
+
+        .task-container { background:var(--bg-secondary); border-radius:12px; padding:25px; margin-bottom:25px; }
+        .task-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .task-number { background:var(--accent-primary); color:#fff; padding:8px 16px; border-radius:20px; font-weight:700; }
+
+        .workspace { background:var(--bg-primary); border:2px solid var(--border-color); border-radius:8px; padding:20px; margin:20px 0; }
+        
+        .component-pool {
+            display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; margin:20px 0;
+        }
+        .component-item {
+            background:var(--bg-tertiary); padding:14px; border-radius:8px; border:2px solid var(--border-color);
+            cursor:move; text-align:center; transition:all .25s; user-select:none;
+        }
+        .component-item:hover { border-color:var(--accent-primary); transform:translateY(-2px); }
+        .component-item.dragging { opacity:0.5; }
+
+        .drop-zone {
+            background:var(--bg-primary); border:2px dashed var(--border-color); border-radius:8px;
+            padding:20px; margin:10px 0; min-height:80px; transition:all .25s;
+        }
+        .drop-zone.drag-over { border-color:var(--accent-primary); background:rgba(99,102,241,.1); }
+        .drop-zone.filled { border-color:var(--accent-success); border-style:solid; }
+        .drop-zone-label { font-weight:600; color:var(--accent-secondary); margin-bottom:8px; font-size:1.05em; }
+
+        .comparison-table {
+            background:var(--bg-primary); border-radius:8px; padding:15px; margin:20px 0;
+            display:grid; grid-template-columns:repeat(3, 1fr); gap:15px;
+        }
+        .spec-card {
+            background:var(--bg-tertiary); padding:15px; border-radius:6px; border:2px solid var(--border-color);
+            text-align:center; cursor:pointer; transition:all .25s;
+        }
+        .spec-card:hover { border-color:var(--accent-primary); transform:scale(1.03); }
+        .spec-card.selected { border-color:var(--accent-success); background:rgba(16,185,129,.15); }
+        .spec-card.wrong { border-color:var(--accent-error); background:rgba(239,68,68,.15); }
+        .spec-value { font-size:1.4em; font-weight:700; color:var(--accent-primary); margin:8px 0; }
+        .spec-label { color:var(--text-secondary); font-size:0.9em; }
+
+        button {
+            background:var(--accent-primary); color:#fff; border:none; padding:12px 24px;
+            border-radius:6px; font-weight:600; cursor:pointer; transition:all .25s;
+            font-family:'Inter',sans-serif; font-size:1em; margin:5px;
+        }
+        button:hover { background:var(--accent-secondary); transform:translateY(-2px); }
+        button.secondary { background:var(--bg-tertiary); border:2px solid var(--border-color); }
+
+        .feedback { margin-top:15px; padding:15px; border-radius:8px; display:none; }
+        .feedback.show { display:block; animation:slideIn .3s ease; }
+        @keyframes slideIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+        .feedback.success { background:rgba(16,185,129,.2); border-left:4px solid var(--accent-success); }
+        .feedback.error { background:rgba(239,68,68,.2); border-left:4px solid var(--accent-error); }
+
+        .instructions {
+            background:rgba(99,102,241,.1); padding:15px; border-radius:8px; margin:15px 0;
+            border-left:4px solid var(--accent-primary);
+        }
+        .instructions ul { margin-left:20px; margin-top:8px; }
+        .instructions li { margin:5px 0; }
+
+        .answer-grid {
+            display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin:20px 0;
+        }
+        .answer-option {
+            background:var(--bg-tertiary); padding:15px; border-radius:8px; border:2px solid var(--border-color);
+            cursor:pointer; transition:all .25s; text-align:center;
+        }
+        .answer-option:hover { border-color:var(--accent-primary); transform:scale(1.03); }
+        .answer-option.selected { border-color:var(--accent-success); background:rgba(16,185,129,.15); }
+        .answer-option.correct { border-color:var(--accent-success); background:rgba(16,185,129,.2); }
+        .answer-option.incorrect { border-color:var(--accent-error); background:rgba(239,68,68,.2); }
+
+        .psu-calculator {
+            background:var(--bg-tertiary); border-radius:8px; padding:20px; margin:20px 0;
+        }
+        .psu-header {
+            display:grid; grid-template-columns:200px 100px 100px 120px; gap:15px; margin-bottom:15px;
+            font-weight:700; color:var(--accent-primary); padding-bottom:10px; border-bottom:2px solid var(--border-color);
+        }
+        .psu-row {
+            display:grid; grid-template-columns:200px 100px 100px 120px; gap:15px; margin:10px 0; align-items:center;
+        }
+        .psu-row input {
+            background:var(--bg-primary); border:2px solid var(--border-color); color:var(--text-primary);
+            padding:10px; border-radius:6px; font-family:'JetBrains Mono',monospace; text-align:center;
+        }
+        .psu-total {
+            background:var(--bg-primary); padding:20px; border-radius:8px; margin-top:20px;
+            border:3px solid var(--accent-success); text-align:center; font-size:1.4em;
+        }
+
+        .media-selector {
+            display:grid; grid-template-columns:repeat(3, 1fr); gap:15px; margin:20px 0;
+        }
+        .media-card {
+            background:var(--bg-tertiary); padding:20px; border-radius:8px; border:2px solid var(--border-color);
+            cursor:pointer; transition:all .25s; text-align:center;
+        }
+        .media-card:hover { border-color:var(--accent-primary); transform:scale(1.05); }
+        .media-card.selected { border-color:var(--accent-success); background:rgba(16,185,129,.15); }
+        .media-card.wrong { border-color:var(--accent-error); background:rgba(239,68,68,.15); }
+        .media-capacity { font-size:1.6em; font-weight:700; color:var(--accent-primary); margin:10px 0; }
+        .media-name { font-size:1.1em; font-weight:600; margin-bottom:5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>⚡ Computing Fundamentals Part 2 - PBQ</h1>
+        <p class="subtitle">Performance-Based Questions: Demonstrate Your Skills</p>
+    </header>
+
+    <div class="scenario-box">
+        <h2>📋 Scenario</h2>
+        <p>You continue working as an IT support technician. Complete these hardware selection, configuration, and capacity planning tasks for your company's upcoming system upgrades.</p>
+    </div>
+
+    <!-- TASK 1: STORAGE SELECTION -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 1: Match Storage Solutions to Requirements</h3>
+            <span class="task-number">PBQ 1 of 5</span>
+        </div>
+        
+        <div class="instructions">
+            <strong>Instructions:</strong> Your company has different storage needs. Drag each storage device to the use case it's BEST suited for.
+        </div>
+
+        <div class="component-pool" id="storagePool">
+            <div class="component-item" draggable="true" data-type="ssd">500GB NVMe SSD<br><small>High speed, expensive</small></div>
+            <div class="component-item" draggable="true" data-type="hdd">4TB 7200RPM HDD<br><small>Slow, cheap, large</small></div>
+            <div class="component-item" draggable="true" data-type="ssd">256GB SATA SSD<br><small>Fast boot drive</small></div>
+            <div class="component-item" draggable="true" data-type="hdd">8TB 5400RPM HDD<br><small>Massive capacity</small></div>
+        </div>
+
+        <div class="workspace">
+            <div class="drop-zone-label">Archive Server (Rarely accessed files, need max capacity)</div>
+            <div class="drop-zone" data-type="hdd" id="archiveZone"></div>
+
+            <div class="drop-zone-label">Budget Laptop OS Drive (Need boot speed, limited budget)</div>
+            <div class="drop-zone" data-type="ssd" id="laptopZone"></div>
+
+            <div class="drop-zone-label">Photo/Video Backup (Large files, occasional access)</div>
+            <div class="drop-zone" data-type="hdd" id="backupZone"></div>
+
+            <div class="drop-zone-label">Video Editing Workstation (Need fastest read/write)</div>
+            <div class="drop-zone" data-type="ssd" id="workstationZone"></div>
+        </div>
+
+        <button onclick="checkTask1()">Submit Task 1</button>
+        <button class="secondary" onclick="resetTask1()">Reset</button>
+        <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <!-- TASK 2: GPU REQUIREMENTS -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 2: Identify GPU Requirements</h3>
+            <span class="task-number">PBQ 2 of 5</span>
+        </div>
+
+        <div class="instructions">
+            <strong>Scenario:</strong> Three employees need new computers. Based on their job descriptions, determine which ones require a DEDICATED graphics card (discrete GPU) vs. integrated graphics.
+            <br><br>
+            Select ALL employees who need a dedicated GPU.
+        </div>
+
+        <div class="answer-grid">
+            <div class="answer-option" data-needs-gpu="false" onclick="toggleGpuSelection(this)">
+                <strong>Employee A</strong><br>
+                <small>Accountant<br>Excel, QuickBooks, Email<br>Basic office work</small>
+            </div>
+            <div class="answer-option" data-needs-gpu="true" onclick="toggleGpuSelection(this)">
+                <strong>Employee B</strong><br>
+                <small>3D Designer<br>AutoCAD, Blender<br>Complex 3D rendering</small>
+            </div>
+            <div class="answer-option" data-needs-gpu="false" onclick="toggleGpuSelection(this)">
+                <strong>Employee C</strong><br>
+                <small>Data Analyst<br>Python, R, Tableau<br>Data visualization</small>
+            </div>
+            <div class="answer-option" data-needs-gpu="true" onclick="toggleGpuSelection(this)">
+                <strong>Employee D</strong><br>
+                <small>Video Editor<br>Premiere Pro, 4K footage<br>Color grading</small>
+            </div>
+            <div class="answer-option" data-needs-gpu="false" onclick="toggleGpuSelection(this)">
+                <strong>Employee E</strong><br>
+                <small>Customer Service<br>CRM software, Chat<br>Web browsing</small>
+            </div>
+            <div class="answer-option" data-needs-gpu="true" onclick="toggleGpuSelection(this)">
+                <strong>Employee F</strong><br>
+                <small>Game Developer<br>Unity, Unreal Engine<br>Game testing</small>
+            </div>
+        </div>
+
+        <button onclick="checkTask2()">Submit Task 2</button>
+        <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <!-- TASK 3: OPTICAL MEDIA SELECTION -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 3: Select Appropriate Optical Media</h3>
+            <span class="task-number">PBQ 3 of 5</span>
+        </div>
+
+        <div class="instructions">
+            <strong>Scenario:</strong> You need to distribute a 6.2 GB training video to 50 employees. Each person gets their own copy on optical media.
+            <br><br>
+            Select the MOST COST-EFFECTIVE optical format that will hold the file.
+        </div>
+
+        <div class="media-selector">
+            <div class="media-card" onclick="selectMedia(this, false)">
+                <div class="media-name">Blu-ray Disc</div>
+                <div class="media-capacity">25 GB</div>
+                <div class="spec-label">$2.50 per disc</div>
+            </div>
+            <div class="media-card" onclick="selectMedia(this, false)">
+                <div class="media-name">CD-R</div>
+                <div class="media-capacity">700 MB</div>
+                <div class="spec-label">$0.25 per disc</div>
+            </div>
+            <div class="media-card" onclick="selectMedia(this, true)">
+                <div class="media-name">DVD-R Dual Layer</div>
+                <div class="media-capacity">8.5 GB</div>
+                <div class="spec-label">$0.75 per disc</div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <strong>Calculation Help:</strong>
+            <ul>
+                <li>File size: 6.2 GB</li>
+                <li>CD-R: 700 MB = 0.7 GB (TOO SMALL)</li>
+                <li>DVD-R DL: 8.5 GB (FITS, cheaper than Blu-ray)</li>
+                <li>Blu-ray: 25 GB (FITS, but expensive overkill)</li>
+            </ul>
+        </div>
+
+        <button onclick="checkTask3()">Submit Task 3</button>
+        <div class="feedback" id="feedback3"></div>
+    </div>
+
+    <!-- TASK 4: EXPANSION CARD MATCHING -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 4: Match Expansion Cards to Needs</h3>
+            <span class="task-number">PBQ 4 of 5</span>
+        </div>
+
+        <div class="instructions">
+            <strong>Instructions:</strong> Different users need different expansion cards. Match each card to the correct requirement.
+        </div>
+
+        <div class="component-pool" id="cardPool">
+            <div class="component-item" draggable="true" data-card="nic">Gigabit Ethernet NIC</div>
+            <div class="component-item" draggable="true" data-card="gpu">RTX 4070 Graphics Card</div>
+            <div class="component-item" draggable="true" data-card="sound">Professional Sound Card</div>
+            <div class="component-item" draggable="true" data-card="capture">Video Capture Card</div>
+        </div>
+
+        <div class="workspace">
+            <div class="drop-zone-label">Audio Engineer (needs low-latency recording)</div>
+            <div class="drop-zone" data-card="sound" id="audioZone"></div>
+
+            <div class="drop-zone-label">Gaming PC (needs high FPS at 1440p)</div>
+            <div class="drop-zone" data-card="gpu" id="gamingZone"></div>
+
+            <div class="drop-zone-label">Old desktop (needs faster network than built-in 100Mbps)</div>
+            <div class="drop-zone" data-card="nic" id="networkZone"></div>
+
+            <div class="drop-zone-label">Streamer (needs to record console gameplay)</div>
+            <div class="drop-zone" data-card="capture" id="streamZone"></div>
+        </div>
+
+        <button onclick="checkTask4()">Submit Task 4</button>
+        <button class="secondary" onclick="resetTask4()">Reset</button>
+        <div class="feedback" id="feedback4"></div>
+    </div>
+
+    <!-- TASK 5: PSU WATTAGE CALCULATION -->
+    <div class="task-container">
+        <div class="task-header">
+            <h3>Task 5: Calculate Required PSU Wattage</h3>
+            <span class="task-number">PBQ 5 of 5</span>
+        </div>
+
+        <div class="instructions">
+            <strong>Scenario:</strong> You're building a gaming PC. Calculate total wattage needed, then add 20% overhead for efficiency and future upgrades. The components are listed below.
+            <ul>
+                <li>Enter the wattage for each component</li>
+                <li>Click "Calculate Total" to see required PSU wattage</li>
+                <li>Select the appropriate PSU size</li>
+            </ul>
+        </div>
+
+        <div class="psu-calculator">
+            <div class="psu-header">
+                <div>Component</div>
+                <div>Qty</div>
+                <div>Watts Each</div>
+                <div>Subtotal</div>
+            </div>
+
+            <div class="psu-row">
+                <div>CPU (Intel i7)</div>
+                <div>1</div>
+                <input type="number" id="cpuWatts" value="125" readonly style="background:#2d3348;">
+                <div id="cpuTotal">125W</div>
+            </div>
+
+            <div class="psu-row">
+                <div>GPU (RTX 4070)</div>
+                <div>1</div>
+                <input type="number" id="gpuWatts" value="200" readonly style="background:#2d3348;">
+                <div id="gpuTotal">200W</div>
+            </div>
+
+            <div class="psu-row">
+                <div>RAM (32GB DDR5)</div>
+                <div>4</div>
+                <input type="number" id="ramWatts" placeholder="Watts" value="">
+                <div id="ramTotal">?W</div>
+            </div>
+
+            <div class="psu-row">
+                <div>SSD (NVMe)</div>
+                <div>2</div>
+                <input type="number" id="ssdWatts" placeholder="Watts" value="">
+                <div id="ssdTotal">?W</div>
+            </div>
+
+            <div class="psu-row">
+                <div>Case Fans</div>
+                <div>5</div>
+                <input type="number" id="fanWatts" placeholder="Watts" value="">
+                <div id="fanTotal">?W</div>
+            </div>
+
+            <div class="psu-row">
+                <div>RGB Lighting</div>
+                <div>1</div>
+                <input type="number" id="rgbWatts" placeholder="Watts" value="">
+                <div id="rgbTotal">?W</div>
+            </div>
+
+            <div style="margin-top:20px; padding-top:15px; border-top:2px solid var(--border-color);">
+                <button onclick="calculatePSU()">Calculate Total Wattage</button>
+            </div>
+
+            <div class="psu-total" id="psuResult" style="display:none;">
+                <div>Total Component Power: <span id="basePower">0W</span></div>
+                <div style="margin-top:10px;">+ 20% Overhead: <span id="overhead">0W</span></div>
+                <div style="margin-top:10px; font-size:1.6em; color:var(--accent-success);">
+                    Recommended PSU: <span id="recommendedPSU">0W</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions" id="psuQuestion" style="display:none;">
+            <strong>Question:</strong> Based on your calculation, which PSU should you purchase?
+        </div>
+
+        <div class="answer-grid" id="psuOptions" style="display:none;">
+            <div class="answer-option" onclick="selectPSU(this, false)">
+                <strong>450W PSU</strong><br>
+                <small>80 Plus Bronze</small>
+            </div>
+            <div class="answer-option" onclick="selectPSU(this, false)">
+                <strong>550W PSU</strong><br>
+                <small>80 Plus Gold</small>
+            </div>
+            <div class="answer-option" onclick="selectPSU(this, true)">
+                <strong>650W PSU</strong><br>
+                <small>80 Plus Gold</small>
+            </div>
+            <div class="answer-option" onclick="selectPSU(this, false)">
+                <strong>850W PSU</strong><br>
+                <small>80 Plus Platinum</small>
+            </div>
+        </div>
+
+        <button onclick="checkTask5()" id="submitPSU" style="display:none;">Submit Task 5</button>
+        <div class="feedback" id="feedback5"></div>
+    </div>
+
+</div>
+
+<script>
+// TASK 1: Storage Device Matching
+let draggedElement = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupDragAndDrop();
+});
+
+function setupDragAndDrop() {
+    const items = document.querySelectorAll('.component-item');
+    items.forEach(item => {
+        item.addEventListener('dragstart', e => {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+        });
+        item.addEventListener('dragend', e => {
+            e.target.classList.remove('dragging');
+        });
+    });
+
+    const zones = document.querySelectorAll('.drop-zone');
+    zones.forEach(zone => {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('drag-over');
+        });
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            if (draggedElement) {
+                zone.appendChild(draggedElement);
+                if (zone.children.length > 0) zone.classList.add('filled');
+            }
+        });
+    });
+}
+
+function checkTask1() {
+    const zones = document.querySelectorAll('#archiveZone, #laptopZone, #backupZone, #workstationZone');
+    let correct = 0;
+    let total = 4;
+
+    zones.forEach(zone => {
+        const item = zone.querySelector('.component-item');
+        if (item) {
+            if (item.dataset.type === zone.dataset.type) {
+                correct++;
+                item.style.borderColor = 'var(--accent-success)';
+            } else {
+                item.style.borderColor = 'var(--accent-error)';
+            }
+        }
+    });
+
+    const feedback = document.getElementById('feedback1');
+    feedback.className = 'feedback show ' + (correct === total ? 'success' : 'error');
+    
+    if (correct === total) {
+        feedback.innerHTML = `<strong>✓ Perfect! All storage devices matched correctly.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br>
+        <strong>HDD (Hard Disk Drive) - Best for:</strong><br>
+        • <strong>Archive Server & Backup:</strong> Large capacity (4-8TB+), low cost per GB. Speed doesn't matter for rarely-accessed files.<br>
+        • Technology: Spinning magnetic platters, mechanical read/write heads<br>
+        • Speed: 100-200 MB/s<br>
+        • Cost: $0.02-0.03 per GB<br>
+        • Use when: Capacity and cost matter more than speed<br><br>
+        <strong>SSD (Solid State Drive) - Best for:</strong><br>
+        • <strong>OS Boot Drive & Video Editing:</strong> Fast boot times, quick application launches, rapid file access for editing.<br>
+        • Technology: Flash memory chips, no moving parts<br>
+        • Speed: 500-7000 MB/s (5-35× faster than HDD)<br>
+        • Cost: $0.08-0.15 per GB<br>
+        • Use when: Speed is critical, files accessed frequently<br><br>
+        <strong>Decision Framework:</strong><br>
+        Ask yourself: "How often is this data accessed?"<br>
+        • <strong>Constantly</strong> (OS, programs, active projects) → SSD<br>
+        • <strong>Occasionally</strong> (backups, archives, media library) → HDD<br><br>
+        <em>Pro Tip: Ideal setup = Small SSD for OS + Large HDD for storage. This gives you speed where it matters and capacity where you need it.</em>`;
+    } else {
+        feedback.innerHTML = `<strong>You matched ${correct} out of ${total} correctly.</strong><br><br>
+        <strong>Review Guide:</strong><br>
+        <strong>When to use SSD:</strong><br>
+        ✓ Operating system drives (fast boot)<br>
+        ✓ Video editing (rapid file access)<br>
+        ✓ Gaming (fast load times)<br>
+        ✓ Any frequently-accessed data<br><br>
+        <strong>When to use HDD:</strong><br>
+        ✓ Archives (rarely accessed)<br>
+        ✓ Backups (large capacity needed)<br>
+        ✓ Media libraries (size over speed)<br>
+        ✓ Budget constraints<br><br>
+        <strong>Key Principle:</strong> Match storage technology to access pattern and budget, not just capacity.`;
+    }
+}
+
+function resetTask1() {
+    const pool = document.getElementById('storagePool');
+    const zones = document.querySelectorAll('#archiveZone, #laptopZone, #backupZone, #workstationZone');
+    
+    zones.forEach(zone => {
+        const items = zone.querySelectorAll('.component-item');
+        items.forEach(item => {
+            item.style.borderColor = '';
+            pool.appendChild(item);
+        });
+        zone.classList.remove('filled');
+    });
+    
+    document.getElementById('feedback1').className = 'feedback';
+}
+
+// TASK 2: GPU Requirements
+function toggleGpuSelection(element) {
+    element.classList.toggle('selected');
+}
+
+function checkTask2() {
+    const options = document.querySelectorAll('#feedback2').length ? [] : document.querySelectorAll('[data-needs-gpu]');
+    let correct = 0;
+    let shouldNeedGpu = 0;
+
+    options.forEach(opt => {
+        const needsGpu = opt.dataset.needsGpu === 'true';
+        const isSelected = opt.classList.contains('selected');
+        
+        if (needsGpu) shouldNeedGpu++;
+        
+        if (needsGpu && isSelected) {
+            correct++;
+            opt.classList.add('correct');
+        } else if (!needsGpu && !isSelected) {
+            // Correctly NOT selected
+        } else {
+            opt.classList.add('incorrect');
+        }
+    });
+
+    const feedback = document.getElementById('feedback2');
+    const allCorrect = correct === shouldNeedGpu && 
+                       document.querySelectorAll('.answer-option.selected.incorrect').length === 0;
+    
+    feedback.className = 'feedback show ' + (allCorrect ? 'success' : 'error');
+    
+    if (allCorrect) {
+        feedback.innerHTML = `<strong>✓ Correct! Employees B, D, and F need dedicated GPUs.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br>
+        <strong>WHY These Employees Need Dedicated GPUs:</strong><br><br>
+        <strong>Employee B - 3D Designer (AutoCAD, Blender):</strong><br>
+        • Complex 3D rendering requires parallel processing<br>
+        • Real-time viewport manipulation needs GPU acceleration<br>
+        • Rendering engines leverage thousands of GPU cores<br><br>
+        <strong>Employee D - Video Editor (Premiere Pro, 4K):</strong><br>
+        • 4K video playback requires heavy GPU processing<br>
+        • Color grading uses GPU-accelerated effects<br>
+        • Export rendering is 3-5× faster with dedicated GPU<br><br>
+        <strong>Employee F - Game Developer (Unity, Unreal Engine):</strong><br>
+        • Game engines require real-time 3D rendering<br>
+        • Testing games needs actual gaming performance<br>
+        • Shader compilation and lighting require GPU<br><br>
+        <strong>WHY Others Don't Need Dedicated GPUs:</strong><br><br>
+        <strong>Employee A - Accountant:</strong> Excel and QuickBooks are CPU-bound, not GPU-intensive<br>
+        <strong>Employee C - Data Analyst:</strong> Python/R visualization works fine on integrated graphics<br>
+        <strong>Employee E - Customer Service:</strong> Web browsing and chat require minimal graphics<br><br>
+        <strong>Integrated vs. Dedicated Graphics:</strong><br>
+        • <strong>Integrated:</strong> Built into CPU, shares system RAM, good for office work<br>
+        • <strong>Dedicated:</strong> Separate card, own VRAM (4-24GB), parallel processing powerhouse<br><br>
+        <em>Cost Impact: Dedicated GPU adds $300-$1,500 to workstation cost. Only buy when necessary!</em>`;
+    } else {
+        feedback.innerHTML = `<strong>Review GPU requirements.</strong><br><br>
+        <strong>Tasks Requiring Dedicated GPU:</strong><br>
+        ✓ 3D modeling/rendering (CAD, Blender, Maya)<br>
+        ✓ Video editing (4K+, effects, color grading)<br>
+        ✓ Game development/testing<br>
+        ✓ Machine learning/AI training<br>
+        ✓ Professional photo editing (high-res, many layers)<br><br>
+        <strong>Tasks Fine with Integrated Graphics:</strong><br>
+        ✓ Office applications (Word, Excel, PowerPoint)<br>
+        ✓ Web browsing and email<br>
+        ✓ Basic data visualization<br>
+        ✓ Video conferencing<br>
+        ✓ Light photo editing<br><br>
+        <strong>Decision Rule:</strong> If the job involves creating, rendering, or manipulating visual content in real-time, it likely needs a dedicated GPU.`;
+    }
+}
+
+// TASK 3: Optical Media Selection
+let selectedMediaElement = null;
+
+function selectMedia(element, isCorrect) {
+    const siblings = element.parentElement.querySelectorAll('.media-card');
+    siblings.forEach(s => s.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedMediaElement = { element, isCorrect };
+}
+
+function checkTask3() {
+    const feedback = document.getElementById('feedback3');
+
+    if (!selectedMediaElement) {
+        feedback.className = 'feedback show error';
+        feedback.textContent = '⚠ Please select an optical media format.';
+        return;
+    }
+
+    feedback.className = 'feedback show ' + (selectedMediaElement.isCorrect ? 'success' : 'error');
+
+    if (selectedMediaElement.isCorrect) {
+        selectedMediaElement.element.classList.add('selected');
+        feedback.innerHTML = `<strong>✓ Correct! DVD-R Dual Layer is the most cost-effective solution.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br>
+        <strong>Capacity Analysis:</strong><br>
+        • File size: 6.2 GB<br>
+        • CD-R: 700 MB = 0.7 GB ❌ TOO SMALL (would need 9 discs per person!)<br>
+        • DVD-R DL: 8.5 GB ✓ FITS with room to spare<br>
+        • Blu-ray: 25 GB ✓ FITS but massive overkill<br><br>
+        <strong>Cost Comparison (for 50 employees):</strong><br>
+        • DVD-R DL: $0.75 × 50 = <strong>$37.50</strong> ✓ BEST VALUE<br>
+        • Blu-ray: $2.50 × 50 = <strong>$125.00</strong> (3.3× more expensive!)<br>
+        • <strong>Savings: $87.50</strong> by choosing DVD over Blu-ray<br><br>
+        <strong>Optical Media Hierarchy:</strong><br>
+        • <strong>CD:</strong> 700 MB (audio, small data)<br>
+        • <strong>DVD Single Layer:</strong> 4.7 GB (movies, software)<br>
+        • <strong>DVD Dual Layer:</strong> 8.5 GB (larger software, HD video)<br>
+        • <strong>Blu-ray Single Layer:</strong> 25 GB (HD movies, large backups)<br>
+        • <strong>Blu-ray Dual Layer:</strong> 50 GB (4K movies)<br><br>
+        <strong>Technology Explained:</strong><br>
+        DVD uses red laser (650nm wavelength). Dual layer has two data layers on one disc, doubling capacity from 4.7 GB to 8.5 GB. The laser focuses on different depths to read each layer.<br><br>
+        <em>Pro Tip: Always choose the smallest format that fits your data. Larger formats cost more and waste capacity.</em>`;
+    } else {
+        selectedMediaElement.element.classList.add('wrong');
+        const correct = Array.from(document.querySelectorAll('.media-card')).find(el => 
+            el.textContent.includes('DVD-R'));
+        if (correct) correct.classList.add('selected');
+        feedback.innerHTML = `<strong>✗ Incorrect.</strong><br><br>
+        <strong>How to Choose Optical Media:</strong><br><br>
+        <strong>Step 1: Eliminate formats too small</strong><br>
+        • File: 6.2 GB<br>
+        • CD-R: 700 MB = 0.7 GB ❌ WAY TOO SMALL<br><br>
+        <strong>Step 2: Compare remaining options</strong><br>
+        • DVD-R DL: 8.5 GB ✓ Fits (2.3 GB free)<br>
+        • Blu-ray: 25 GB ✓ Fits (18.8 GB wasted!)<br><br>
+        <strong>Step 3: Choose most cost-effective</strong><br>
+        • DVD-R DL: $0.75 per disc<br>
+        • Blu-ray: $2.50 per disc (233% more expensive)<br><br>
+        Both work, but DVD-R DL is the smart choice. Blu-ray would waste 75% of each disc's capacity and cost $87.50 more for 50 copies.`;
+    }
+}
+
+// TASK 4: Expansion Card Matching
+function checkTask4() {
+    const zones = document.querySelectorAll('#audioZone, #gamingZone, #networkZone, #streamZone');
+    let correct = 0;
+    let total = 4;
+
+    zones.forEach(zone => {
+        const item = zone.querySelector('.component-item');
+        if (item) {
+            if (item.dataset.card === zone.dataset.card) {
+                correct++;
+                item.style.borderColor = 'var(--accent-success)';
+            } else {
+                item.style.borderColor = 'var(--accent-error)';
+            }
+        }
+    });
+
+    const feedback = document.getElementById('feedback4');
+    feedback.className = 'feedback show ' + (correct === total ? 'success' : 'error');
+    
+    if (correct === total) {
+        feedback.innerHTML = `<strong>✓ Excellent! All expansion cards matched correctly.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br><br>
+        <strong>Sound Card → Audio Engineer:</strong><br>
+        • Professional audio work requires low-latency recording (< 10ms)<br>
+        • Dedicated sound cards have better DACs (Digital-to-Analog Converters)<br>
+        • Higher signal-to-noise ratio than onboard audio<br>
+        • ASIO drivers for professional software (Pro Tools, Ableton)<br><br>
+        <strong>GPU → Gaming PC:</strong><br>
+        • Modern games require dedicated graphics for high FPS<br>
+        • 1440p gaming needs mid-to-high-end GPU (RTX 4070, RX 7800 XT)<br>
+        • Integrated graphics can't handle AAA games at playable framerates<br>
+        • GPU has own VRAM (12-16GB) and thousands of cores for parallel processing<br><br>
+        <strong>NIC → Old Desktop:</strong><br>
+        • Built-in 100 Mbps (Fast Ethernet) is 10× slower than Gigabit (1000 Mbps)<br>
+        • Gigabit NIC enables faster file transfers, streaming, downloads<br>
+        • PCIe network cards add modern connectivity to older systems<br>
+        • Often includes improved drivers and features (jumbo frames, VLAN support)<br><br>
+        <strong>Capture Card → Streamer:</strong><br>
+        • Records HDMI output from gaming consoles (PlayStation, Xbox, Switch)<br>
+        • Bypasses HDCP (copy protection) for legal gameplay recording<br>
+        • Hardware encoding offloads work from CPU<br>
+        • Enables simultaneous gaming and streaming without performance loss<br><br>
+        <strong>Expansion Card Basics:</strong><br>
+        Most modern cards use <strong>PCIe (PCI Express)</strong> slots:<br>
+        • PCIe x1: Sound cards, NICs, USB expansion (4 GB/s)<br>
+        • PCIe x4: Capture cards, RAID controllers (16 GB/s)<br>
+        • PCIe x16: Graphics cards (32+ GB/s)<br><br>
+        <em>Pro Tip: Check motherboard manual for slot compatibility. Some x16 slots only run at x8 or x4 speed.</em>`;
+    } else {
+        feedback.innerHTML = `<strong>You matched ${correct} out of ${total} correctly.</strong><br><br>
+        <strong>Review Guide:</strong><br><br>
+        <strong>Sound Card:</strong> Professional audio production, recording, low-latency playback<br>
+        <strong>Graphics Card (GPU):</strong> Gaming, video editing, 3D rendering, parallel processing<br>
+        <strong>Network Interface Card (NIC):</strong> Upgrade network speed, add WiFi, server connectivity<br>
+        <strong>Capture Card:</strong> Record external video sources (consoles, cameras, other PCs)<br><br>
+        <strong>Decision Framework:</strong><br>
+        • What limitation exists? (slow network, no graphics power, can't record external video, poor audio)<br>
+        • What expansion card addresses that specific limitation?<br><br>
+        Match the card's function to the user's specific need.`;
+    }
+}
+
+function resetTask4() {
+    const pool = document.getElementById('cardPool');
+    const zones = document.querySelectorAll('#audioZone, #gamingZone, #networkZone, #streamZone');
+    
+    zones.forEach(zone => {
+        const items = zone.querySelectorAll('.component-item');
+        items.forEach(item => {
+            item.style.borderColor = '';
+            pool.appendChild(item);
+        });
+        zone.classList.remove('filled');
+    });
+    
+    document.getElementById('feedback4').className = 'feedback';
+}
+
+// TASK 5: PSU Calculation
+function calculatePSU() {
+    const ram = parseFloat(document.getElementById('ramWatts').value) || 0;
+    const ssd = parseFloat(document.getElementById('ssdWatts').value) || 0;
+    const fan = parseFloat(document.getElementById('fanWatts').value) || 0;
+    const rgb = parseFloat(document.getElementById('rgbWatts').value) || 0;
+
+    if (ram === 0 || ssd === 0 || fan === 0 || rgb === 0) {
+        alert('Please enter wattage for all components (RAM, SSD, Fans, RGB)');
+        return;
+    }
+
+    // Update subtotals
+    document.getElementById('ramTotal').textContent = (ram * 4) + 'W';
+    document.getElementById('ssdTotal').textContent = (ssd * 2) + 'W';
+    document.getElementById('fanTotal').textContent = (fan * 5) + 'W';
+    document.getElementById('rgbTotal').textContent = rgb + 'W';
+
+    // Calculate totals
+    const basePower = 125 + 200 + (ram * 4) + (ssd * 2) + (fan * 5) + rgb;
+    const overhead = Math.round(basePower * 0.2);
+    const recommended = basePower + overhead;
+
+    document.getElementById('basePower').textContent = basePower + 'W';
+    document.getElementById('overhead').textContent = overhead + 'W';
+    document.getElementById('recommendedPSU').textContent = recommended + 'W';
+
+    document.getElementById('psuResult').style.display = 'block';
+    document.getElementById('psuQuestion').style.display = 'block';
+    document.getElementById('psuOptions').style.display = 'grid';
+    document.getElementById('submitPSU').style.display = 'inline-block';
+}
+
+let selectedPSU = null;
+
+function selectPSU(element, isCorrect) {
+    const siblings = element.parentElement.querySelectorAll('.answer-option');
+    siblings.forEach(s => s.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedPSU = { element, isCorrect };
+}
+
+function checkTask5() {
+    const feedback = document.getElementById('feedback5');
+
+    if (!selectedPSU) {
+        feedback.className = 'feedback show error';
+        feedback.textContent = '⚠ Please calculate total wattage and select a PSU.';
+        return;
+    }
+
+    // Check if calculation was done
+    const recommended = document.getElementById('recommendedPSU').textContent;
+    if (recommended === '0W') {
+        feedback.className = 'feedback show error';
+        feedback.textContent = '⚠ Please complete the calculation first.';
+        return;
+    }
+
+    feedback.className = 'feedback show ' + (selectedPSU.isCorrect ? 'success' : 'error');
+
+    if (selectedPSU.isCorrect) {
+        selectedPSU.element.classList.add('correct');
+        feedback.innerHTML = `<strong>✓ Correct! 650W PSU is the right choice.</strong><br><br>
+        <strong>Detailed Explanation:</strong><br>
+        <strong>Typical Component Wattages:</strong><br>
+        • CPU (Intel i7): 125W (TDP rating)<br>
+        • GPU (RTX 4070): 200W (can spike to 220W)<br>
+        • RAM (4× 8GB DDR5): 4 × 5W = 20W<br>
+        • SSD (2× NVMe): 2 × 5W = 10W<br>
+        • Case Fans (5×): 5 × 3W = 15W<br>
+        • RGB Lighting: 10W<br>
+        <strong>Base Total: 380W</strong><br><br>
+        <strong>Why Add 20% Overhead?</strong><br>
+        1. <strong>Efficiency curve:</strong> PSUs run most efficiently at 50-80% load<br>
+        2. <strong>Power spikes:</strong> Components can briefly exceed TDP ratings<br>
+        3. <strong>Future upgrades:</strong> Room for additional drives, fans, better GPU<br>
+        4. <strong>PSU aging:</strong> Capacitors degrade over time, reducing max output<br><br>
+        380W × 1.20 = <strong>456W minimum recommended</strong><br><br>
+        <strong>Why 650W Specifically?</strong><br>
+        • <strong>450W:</strong> Too close to limit (456W needed), no headroom ❌<br>
+        • <strong>550W:</strong> Barely adequate, but tight for upgrades ⚠️<br>
+        • <strong>650W:</strong> Perfect sweet spot, 43% headroom ✓<br>
+        • <strong>850W:</strong> Overkill, wastes money, less efficient at low loads ❌<br><br>
+        <strong>80 Plus Ratings Explained:</strong><br>
+        Efficiency at 50% load:<br>
+        • <strong>80 Plus (White):</strong> 80% efficient<br>
+        • <strong>80 Plus Bronze:</strong> 82-85% efficient<br>
+        • <strong>80 Plus Gold:</strong> 87-90% efficient ← Good value<br>
+        • <strong>80 Plus Platinum:</strong> 89-92% efficient<br>
+        • <strong>80 Plus Titanium:</strong> 90-94% efficient<br><br>
+        Higher efficiency = less wasted electricity = lower heat = quieter fans.<br><br>
+        <em>Pro Tip: A quality 650W Gold PSU will outlast your other components. Don't cheap out - PSU failure can damage entire system!</em>`;
+    } else {
+        selectedPSU.element.classList.add('incorrect');
+        const correct = Array.from(document.querySelectorAll('#psuOptions .answer-option')).find(el => 
+            el.textContent.includes('650W'));
+        if (correct) correct.classList.add('correct');
+        feedback.innerHTML = `<strong>✗ Incorrect.</strong><br><br>
+        <strong>How to Calculate PSU Wattage:</strong><br><br>
+        <strong>Step 1: Add up all components</strong><br>
+        Typical values for this build:<br>
+        • CPU: 125W<br>
+        • GPU: 200W<br>
+        • RAM (4 sticks): 20W<br>
+        • SSDs (2): 10W<br>
+        • Fans (5): 15W<br>
+        • RGB: 10W<br>
+        = <strong>380W total</strong><br><br>
+        <strong>Step 2: Add 20% overhead</strong><br>
+        380W × 1.20 = <strong>456W</strong><br><br>
+        <strong>Step 3: Choose appropriate PSU</strong><br>
+        • 450W: Below minimum (456W) ❌<br>
+        • 550W: Technically works but tight ⚠️<br>
+        • 650W: Proper headroom for efficiency and upgrades ✓<br>
+        • 850W: Unnecessary expense, overkill ❌<br><br>
+        <strong>Why 650W?</strong> It's the smallest standard size above your requirement that provides proper headroom for efficiency and future upgrades.`;
+    }
+}
+</script>
+</body>
+</html>

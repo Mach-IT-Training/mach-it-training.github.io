@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computing Fundamentals Part 2 - CompTIA Tech+ FC0-U71</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg-primary:#1a1d29; --bg-secondary:#242938; --bg-tertiary:#2d3348;
+            --accent-primary:#6366f1; --accent-secondary:#8b5cf6;
+            --accent-success:#10b981; --accent-warning:#f59e0b; --accent-error:#ef4444;
+            --text-primary:#f3f4f6; --text-secondary:#9ca3af; --border-color:#374151;
+        }
+        body { font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); line-height:1.6; }
+        .container { max-width:1400px; margin:0 auto; padding:20px; }
+
+        header {
+            text-align:center; padding:40px 20px;
+            background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));
+            border-radius:12px; margin-bottom:30px;
+        }
+        header h1 { font-size:2.4em; font-weight:700; margin-bottom:8px; }
+        header .subtitle { font-size:1.15em; opacity:0.9; }
+
+        .lesson-container { display:grid; grid-template-columns:320px 1fr; gap:20px; }
+
+        /* Sidebar */
+        .sidebar { background:var(--bg-secondary); border-radius:12px; padding:22px; position:sticky; top:20px; height:fit-content; }
+        .sidebar h2 { color:var(--accent-primary); margin-bottom:16px; font-size:1.2em; }
+        .concept-nav { list-style:none; }
+        .concept-nav li {
+            padding:11px 14px; margin-bottom:7px; background:var(--bg-tertiary);
+            border-radius:8px; cursor:pointer; transition:all .25s; border-left:4px solid transparent;
+        }
+        .concept-nav li:hover { background:var(--bg-primary); border-left-color:var(--accent-primary); transform:translateX(4px); }
+        .concept-nav li.active { background:var(--accent-primary); border-left-color:var(--accent-secondary); }
+        .concept-nav li.completed::after { content:" ✓"; color:var(--accent-success); float:right; }
+        .progress-indicator { text-align:center; color:var(--text-secondary); margin-top:12px; font-size:.9em; }
+
+        /* Main */
+        .main-content { background:var(--bg-secondary); border-radius:12px; padding:30px; }
+        .lesson { display:none; }
+        .lesson.active { display:block; animation:fadeIn .4s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        .lesson h2 { color:var(--accent-primary); font-size:1.9em; margin-bottom:14px; }
+
+        .problem-scenario { background:var(--bg-tertiary); padding:18px; border-radius:8px; margin:18px 0; border-left:4px solid var(--accent-warning); }
+        .problem-scenario h3 { color:var(--accent-warning); margin-bottom:8px; }
+
+        .visual-demo { background:var(--bg-primary); padding:22px; border-radius:8px; margin:22px 0; border:2px solid var(--border-color); }
+        .visual-demo h3 { margin-bottom:12px; }
+
+        .key-concept { background:rgba(99,102,241,.1); padding:16px; border-radius:8px; margin:16px 0; border-left:4px solid var(--accent-primary); }
+        .key-concept strong { color:var(--accent-primary); }
+
+        .interactive-section { background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1)); padding:22px; border-radius:8px; margin:22px 0; border:2px solid var(--accent-primary); }
+        .interactive-section h3 { color:var(--accent-primary); margin-bottom:12px; }
+
+        /* Data cards row */
+        .data-structure { display:flex; gap:18px; margin:18px 0; flex-wrap:wrap; }
+        .data-card { background:var(--bg-tertiary); padding:16px; border-radius:8px; flex:1; min-width:200px; border:2px solid var(--border-color); transition:all .25s; }
+        .data-card:hover { border-color:var(--accent-primary); transform:translateY(-4px); }
+        .data-card h4 { color:var(--accent-secondary); margin-bottom:8px; }
+
+        /* Feedback */
+        .feedback-box { margin-top:14px; padding:14px; border-radius:8px; display:none; }
+        .feedback-box.show { display:block; animation:slideIn .3s ease; }
+        @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+        .feedback-box.success { background:rgba(16,185,129,.2); border-left:4px solid var(--accent-success); }
+        .feedback-box.error   { background:rgba(239,68,68,.2);  border-left:4px solid var(--accent-error); }
+
+        /* Concept-check single-select options */
+        .concept-check { background:var(--bg-tertiary); padding:18px; border-radius:8px; margin:18px 0; }
+        .concept-check h4 { color:var(--accent-warning); margin-bottom:12px; }
+        .check-option { padding:11px 14px; margin:7px 0; background:var(--bg-primary); border-radius:6px; border:2px solid var(--border-color); cursor:pointer; transition:all .25s; }
+        .check-option:hover { border-color:var(--accent-primary); }
+        .check-option.correct   { border-color:var(--accent-success); background:rgba(16,185,129,.12); }
+        .check-option.incorrect { border-color:var(--accent-error);   background:rgba(239,68,68,.12); }
+        .check-option.disabled  { pointer-events:none; }
+
+        .explanation { background:rgba(139,92,246,.1); padding:14px; border-radius:8px; margin-top:8px; border-left:4px solid var(--accent-secondary); display:none; }
+        .explanation.show { display:block; animation:fadeIn .3s ease; }
+
+        /* Tables */
+        table { width:100%; border-collapse:collapse; margin-top:12px; }
+        th,td { padding:11px; text-align:left; border-bottom:1px solid var(--border-color); }
+        th { background:var(--accent-primary); color:#fff; font-weight:600; }
+        tr:hover { background:var(--bg-tertiary); }
+
+        /* Navigation */
+        .navigation-buttons { display:flex; justify-content:space-between; margin-top:28px; padding-top:18px; border-top:1px solid var(--border-color); }
+        button { background:var(--accent-primary); color:#fff; border:none; padding:11px 22px; border-radius:6px; font-weight:600; cursor:pointer; transition:all .25s; font-family:'Inter',sans-serif; font-size:.95em; }
+        button:hover { background:var(--accent-secondary); transform:translateY(-2px); }
+        button.secondary { background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); }
+        button.secondary:hover { background:var(--bg-primary); border-color:var(--accent-primary); }
+
+        /* Completion screen */
+        .completion-hero { text-align:center; padding:40px 20px 28px; }
+        .completion-icon { font-size:5em; margin-bottom:12px; animation:popIn .4s ease; }
+        @keyframes popIn { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+        .completion-title { font-size:2.6em; background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:8px; }
+        .completion-subtitle { color:var(--text-secondary); font-size:1.15em; }
+
+        .completion-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:24px 0; }
+        .completion-card { background:var(--bg-tertiary); padding:22px; border-radius:10px; border:2px solid var(--border-color); transition:all .25s; }
+        .completion-card:hover { border-color:var(--accent-primary); transform:translateY(-4px); }
+        .completion-card-icon { font-size:2em; margin-bottom:10px; }
+        .completion-card h4 { color:var(--accent-primary); margin-bottom:6px; }
+        .completion-card p { color:var(--text-secondary); font-size:.92em; }
+
+        .recap-section { background:var(--bg-tertiary); padding:20px; border-radius:8px; margin:18px 0; }
+        .recap-section h3 { color:var(--accent-warning); margin-bottom:12px; }
+        .recap-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+        .recap-tag { background:var(--accent-primary); color:#fff; padding:6px 12px; border-radius:16px; font-size:.85em; }
+
+        /* Drag-and-drop matching */
+        .drag-item { background:var(--bg-tertiary); padding:14px; border-radius:8px; border:2px solid var(--border-color); cursor:move; transition:all .25s; user-select:none; margin-bottom:10px; }
+        .drag-item:hover { border-color:var(--accent-primary); }
+        .drag-item.dragging { opacity:0.5; }
+        .drop-zone { background:var(--bg-primary); padding:14px; border-radius:8px; border:2px dashed var(--border-color); min-height:60px; margin-bottom:10px; transition:all .25s; }
+        .drop-zone.drag-over { border-color:var(--accent-primary); background:rgba(99,102,241,.1); }
+        .drop-zone.correct { border-color:var(--accent-success); background:rgba(16,185,129,.1); }
+        .drop-zone.incorrect { border-color:var(--accent-error); background:rgba(239,68,68,.1); }
+        .drop-zone-label { font-weight:600; color:var(--accent-secondary); margin-bottom:8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>💻 Computing Fundamentals - Part 2</h1>
+        <div class="subtitle">CompTIA Tech+ FC0-U71 Module 1: Lessons 6-10</div>
+    </header>
+
+    <div class="lesson-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <h2>📚 Part 2 Objectives</h2>
+            <ul class="concept-nav">
+                <li data-lesson="6" class="active">6. Storage Technologies</li>
+                <li data-lesson="7">7. Graphics Processing</li>
+                <li data-lesson="8">8. Optical Media</li>
+                <li data-lesson="9">9. Expansion Devices</li>
+                <li data-lesson="10">10. Power & Cooling</li>
+            </ul>
+            <div class="progress-indicator" id="progressIndicator">Lesson 6 of 10</div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <!-- LESSON 6: Storage Technologies -->
+            <div class="lesson active" id="lesson6">
+                <h2>Lesson 6: Hard Drives vs. Solid-State Drives</h2>
+
+                <div class="key-concept">
+                    <strong>Storage Purpose:</strong> Both HDDs and SSDs provide long-term, non-volatile data storage (data persists when powered off), unlike volatile RAM. The key differences are in technology, speed, and cost.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>A client is building a new PC and must choose between a 2TB HDD for $60 or a 1TB SSD for $100. They need to understand the trade-offs between storage technologies to make an informed decision.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Storage Technology Comparison</h3>
+                    <div class="data-structure">
+                        <div class="data-card">
+                            <h4>💿 HDD (Hard Disk Drive)</h4>
+                            <p><strong>Technology:</strong> Mechanical</p>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li><strong>How it works:</strong> Spinning magnetic platters with read/write heads</li>
+                                <li><strong>Speed:</strong> 80-160 MB/s typical</li>
+                                <li><strong>Pros:</strong> Cheaper per GB, larger capacities</li>
+                                <li><strong>Cons:</strong> Slower, fragile (moving parts), louder</li>
+                                <li><strong>Best for:</strong> Mass storage, backups, archives</li>
+                            </ul>
+                        </div>
+                        <div class="data-card">
+                            <h4>⚡ SSD (Solid-State Drive)</h4>
+                            <p><strong>Technology:</strong> Flash memory</p>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li><strong>How it works:</strong> Electronic memory chips (no moving parts)</li>
+                                <li><strong>Speed:</strong> 200-550 MB/s (SATA)</li>
+                                <li><strong>Pros:</strong> Much faster, silent, durable, energy efficient</li>
+                                <li><strong>Cons:</strong> More expensive per GB</li>
+                                <li><strong>Best for:</strong> OS installation, applications, active files</li>
+                            </ul>
+                        </div>
+                        <div class="data-card">
+                            <h4>🚀 NVMe SSD</h4>
+                            <p><strong>Technology:</strong> Advanced flash memory</p>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li><strong>How it works:</strong> Connects via PCIe interface instead of SATA</li>
+                                <li><strong>Speed:</strong> 1,500-7,000 MB/s</li>
+                                <li><strong>Pros:</strong> Extremely fast, compact M.2 form factor</li>
+                                <li><strong>Cons:</strong> Most expensive option</li>
+                                <li><strong>Best for:</strong> High-performance workstations, gaming</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-section">
+                    <h3>⚖️ Storage Decision Scenario</h3>
+                    <p>Match each use case to the most appropriate storage solution:</p>
+                    <div style="background:var(--bg-tertiary);padding:20px;border-radius:8px;margin-top:14px;">
+                        <div class="drop-zone" data-correct="nvme">
+                            <div class="drop-zone-label">Use Case 1: Video editing workstation needing fastest performance</div>
+                        </div>
+                        <div class="drop-zone" data-correct="hdd">
+                            <div class="drop-zone-label">Use Case 2: Long-term photo archive storage (10TB budget-friendly)</div>
+                        </div>
+                        <div class="drop-zone" data-correct="ssd">
+                            <div class="drop-zone-label">Use Case 3: Operating system installation for quick boot times</div>
+                        </div>
+                        <hr style="margin:20px 0;border-color:var(--border-color);">
+                        <div id="storageItems">
+                            <div class="drag-item" draggable="true" data-storage="ssd">SATA SSD (500 MB/s)</div>
+                            <div class="drag-item" draggable="true" data-storage="hdd">Hard Disk Drive (120 MB/s)</div>
+                            <div class="drag-item" draggable="true" data-storage="nvme">NVMe SSD (3,500 MB/s)</div>
+                        </div>
+                    </div>
+                    <button id="checkStorage" style="margin-top:14px;">Check Answers</button>
+                    <div class="feedback-box" id="feedback6"></div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="1">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> What is the key advantage of NVMe SSDs over traditional SATA SSDs?</p>
+                    <div class="check-option">A) NVMe uses the PCIe interface for significantly faster data transfer speeds</div>
+                    <div class="check-option">B) NVMe drives are more durable and last longer</div>
+                    <div class="check-option">C) NVMe drives are cheaper per gigabyte</div>
+                    <div class="check-option">D) NVMe drives have larger storage capacities</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> NVMe (Non-Volatile Memory Express) is a newer technology that connects SSDs directly to the motherboard via PCIe lanes rather than the older SATA interface. This allows for much faster data transfer speeds—up to 7,000 MB/s compared to SATA's 550 MB/s limit.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LESSON 7: Graphics Processing -->
+            <div class="lesson" id="lesson7">
+                <h2>Lesson 7: Graphics Processing Units (GPUs)</h2>
+
+                <div class="key-concept">
+                    <strong>GPU Defined:</strong> A Graphics Processing Unit is a specialized processor designed specifically for rendering images, videos, and animations. It handles parallel processing tasks much more efficiently than a general-purpose CPU.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>A customer wants to know if they need a dedicated graphics card for their new computer. They plan to do photo editing and occasionally play games. Help them understand what a GPU does and when it's necessary.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>GPU vs. CPU: Different Tools for Different Jobs</h3>
+                    <div class="data-structure">
+                        <div class="data-card">
+                            <h4>🧠 CPU (General Purpose)</h4>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li>Fewer cores (4-16 typically)</li>
+                                <li>Complex instructions</li>
+                                <li>Sequential processing</li>
+                                <li>Best for: General computing, logic, system operations</li>
+                            </ul>
+                        </div>
+                        <div class="data-card">
+                            <h4>🎮 GPU (Graphics Specialist)</h4>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li>Thousands of cores</li>
+                                <li>Simple, repetitive tasks</li>
+                                <li>Parallel processing</li>
+                                <li>Best for: Graphics, video, 3D rendering, AI/ML</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Types of Graphics Solutions</h3>
+                    <table>
+                        <tr>
+                            <th>GPU Type</th>
+                            <th>Description</th>
+                            <th>Best Use Case</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Integrated Graphics</strong></td>
+                            <td>Built into the CPU chip; shares system RAM</td>
+                            <td>Basic computing, office work, video playback</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dedicated Graphics Card</strong></td>
+                            <td>Separate card with its own GPU and dedicated video RAM (VRAM)</td>
+                            <td>Gaming, video editing, 3D modeling, machine learning</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Workstation GPU</strong></td>
+                            <td>Professional-grade cards optimized for accuracy and stability</td>
+                            <td>CAD, scientific computing, professional video production</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="concept-check single-q" data-answer="2">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> Which statement best describes the primary function of a GPU?</p>
+                    <div class="check-option">A) A GPU stores video files on the hard drive</div>
+                    <div class="check-option">B) A GPU is a specialized processor designed for rendering images and parallel processing tasks</div>
+                    <div class="check-option">C) A GPU replaces the CPU in gaming computers</div>
+                    <div class="check-option">D) A GPU increases the amount of RAM available to applications</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> The GPU is specialized hardware optimized for the parallel processing required in graphics rendering. Unlike the CPU which handles sequential tasks, the GPU can process thousands of simple operations simultaneously, making it ideal for rendering pixels, applying effects, and running certain AI algorithms.
+                    </div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="2">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> What is VRAM and why is it important for graphics cards?</p>
+                    <div class="check-option">A) VRAM is virtual RAM that expands available system memory</div>
+                    <div class="check-option">B) VRAM is dedicated memory on the graphics card for storing textures, frame buffers, and image data</div>
+                    <div class="check-option">C) VRAM is volatile RAM that requires constant power</div>
+                    <div class="check-option">D) VRAM stands for Video Recording and Management</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> VRAM (Video RAM) is high-speed memory located on the graphics card itself. It stores the textures, frame buffers, and other graphical data that the GPU needs to access quickly. More VRAM allows for higher resolution textures and better performance at higher resolutions.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LESSON 8: Optical Media -->
+            <div class="lesson" id="lesson8">
+                <h2>Lesson 8: Understanding Optical Disc Technologies</h2>
+
+                <div class="key-concept">
+                    <strong>Optical Storage:</strong> Optical discs (CDs, DVDs, Blu-ray) use lasers to read and write data on plastic discs. They're not designed to replace hard drives but serve specific purposes like media distribution and archival storage.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>A user found an old CD-ROM drive and wants to know if they should install it in their new computer. They're confused about the difference between CD, DVD, and Blu-ray formats and whether optical media is still relevant.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Optical Disc Format Comparison</h3>
+                    <table>
+                        <tr>
+                            <th>Format</th>
+                            <th>Capacity (Single Layer)</th>
+                            <th>Laser Wavelength</th>
+                            <th>Common Use</th>
+                        </tr>
+                        <tr>
+                            <td><strong>CD-ROM</strong></td>
+                            <td>700 MB</td>
+                            <td>780 nm (infrared)</td>
+                            <td>Music albums, software distribution (legacy)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DVD-ROM</strong></td>
+                            <td>4.7 GB</td>
+                            <td>650 nm (red)</td>
+                            <td>Movies, larger software packages</td>
+                        </tr>
+                        <tr>
+                            <td><strong>BD-ROM (Blu-ray)</strong></td>
+                            <td>25 GB</td>
+                            <td>405 nm (blue-violet)</td>
+                            <td>High-definition movies, data archival</td>
+                        </tr>
+                    </table>
+
+                    <div class="key-concept" style="margin-top:16px;">
+                        <strong>Storage Progression:</strong> Each generation uses a shorter wavelength laser, allowing smaller pits on the disc and therefore higher data density. BD-ROM stores approximately 35× more data than CD-ROM and 5× more than DVD-ROM.
+                    </div>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Optical Disc Variants</h3>
+                    <div class="data-structure">
+                        <div class="data-card">
+                            <h4>📀 ROM (Read-Only Memory)</h4>
+                            <p>Pre-recorded discs that cannot be written to</p>
+                            <p style="font-size:.85em;color:var(--text-secondary);margin-top:6px;">Examples: Music CDs, movie DVDs, game discs</p>
+                        </div>
+                        <div class="data-card">
+                            <h4>📝 R (Recordable)</h4>
+                            <p>Can be written to once, cannot be erased</p>
+                            <p style="font-size:.85em;color:var(--text-secondary);margin-top:6px;">Examples: CD-R, DVD-R, BD-R for permanent backups</p>
+                        </div>
+                        <div class="data-card">
+                            <h4>🔄 RW (Rewritable)</h4>
+                            <p>Can be written, erased, and rewritten multiple times</p>
+                            <p style="font-size:.85em;color:var(--text-secondary);margin-top:6px;">Examples: CD-RW, DVD-RW, BD-RE for temporary storage</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="3">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> Why can Blu-ray discs store significantly more data than DVDs?</p>
+                    <div class="check-option">A) Blu-ray discs are physically larger than DVDs</div>
+                    <div class="check-option">B) Blu-ray discs spin faster in the drive</div>
+                    <div class="check-option">C) Blu-ray uses a blue-violet laser with shorter wavelength, allowing smaller pits and higher density</div>
+                    <div class="check-option">D) Blu-ray discs use magnetic storage instead of optical storage</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> Blu-ray uses a blue-violet laser (405 nm wavelength) which is much shorter than DVD's red laser (650 nm). The shorter wavelength allows the laser to focus on smaller pits on the disc surface, enabling much higher data density. This is why a Blu-ray disc can hold 25 GB compared to a DVD's 4.7 GB.
+                    </div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="1">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> Are optical discs designed to replace hard drives as primary storage?</p>
+                    <div class="check-option">A) No, optical discs are slower and have much lower capacity than modern hard drives and SSDs</div>
+                    <div class="check-option">B) Yes, Blu-ray discs are the fastest storage option available</div>
+                    <div class="check-option">C) Yes, but only for laptop computers</div>
+                    <div class="check-option">D) No, optical discs are only used for audio storage</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> Optical discs are not designed to replace hard drives. While a dual-layer Blu-ray can hold 50 GB, modern hard drives offer multiple terabytes, and they're much faster at reading and writing data. Optical media is best suited for media distribution and archival backups.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LESSON 9: Expansion Devices -->
+            <div class="lesson" id="lesson9">
+                <h2>Lesson 9: Expansion Cards and Communication Devices</h2>
+
+                <div class="key-concept">
+                    <strong>Expansion Purpose:</strong> Expansion cards add specific capabilities to computers through slots on the motherboard. They enable specialized functions like advanced graphics, professional audio, and network connectivity.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>A business is setting up new workstations and needs to determine which expansion cards are necessary. Some employees need advanced graphics, others need professional audio capabilities, and all need network connectivity.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Common Expansion Card Types</h3>
+                    <table>
+                        <tr>
+                            <th>Card Type</th>
+                            <th>Primary Function</th>
+                            <th>Key Features</th>
+                        </tr>
+                        <tr>
+                            <td><strong>🎮 Video Card (GPU)</strong></td>
+                            <td>Produce images for displays</td>
+                            <td>Dedicated VRAM, multiple monitor outputs, 3D acceleration</td>
+                        </tr>
+                        <tr>
+                            <td><strong>🔊 Sound Card</strong></td>
+                            <td>Process and output audio</td>
+                            <td>Multiple channels (5.1, 7.1), higher quality DAC, professional I/O</td>
+                        </tr>
+                        <tr>
+                            <td><strong>🌐 Network Interface Card (NIC)</strong></td>
+                            <td>Connect to networks</td>
+                            <td>Ethernet (wired) or Wi-Fi (wireless), various speeds (1Gb, 2.5Gb, 10Gb)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>📞 Modem Card</strong></td>
+                            <td>Connect via telephone lines</td>
+                            <td>Dial-up internet (mostly obsolete), fax capabilities</td>
+                        </tr>
+                        <tr>
+                            <td><strong>🎬 Capture Card</strong></td>
+                            <td>Record video/audio input</td>
+                            <td>HDMI/SDI input, live streaming, video production</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="interactive-section">
+                    <h3>🔌 Match the Expansion Card to the Need</h3>
+                    <p>Drag each user requirement to the appropriate expansion card:</p>
+                    <div style="background:var(--bg-tertiary);padding:20px;border-radius:8px;margin-top:14px;">
+                        <div class="drop-zone" data-correct="video">
+                            <div class="drop-zone-label">Video Card:</div>
+                        </div>
+                        <div class="drop-zone" data-correct="sound">
+                            <div class="drop-zone-label">Sound Card:</div>
+                        </div>
+                        <div class="drop-zone" data-correct="network">
+                            <div class="drop-zone-label">Network Card:</div>
+                        </div>
+                        <hr style="margin:20px 0;border-color:var(--border-color);">
+                        <div id="expansionItems">
+                            <div class="drag-item" draggable="true" data-expansion="video">Need to run three 4K monitors simultaneously</div>
+                            <div class="drag-item" draggable="true" data-expansion="network">Need to connect to office LAN at 10 Gigabit speeds</div>
+                            <div class="drag-item" draggable="true" data-expansion="sound">Need professional audio recording with low latency</div>
+                            <div class="drag-item" draggable="true" data-expansion="video">Need to render 3D animations faster</div>
+                            <div class="drag-item" draggable="true" data-expansion="network">Need wireless connectivity to access points</div>
+                        </div>
+                    </div>
+                    <button id="checkExpansion" style="margin-top:14px;">Check Answers</button>
+                    <div class="feedback-box" id="feedback9"></div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="2">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> What is the key difference between how network cards and modems connect to networks?</p>
+                    <div class="check-option">A) Network cards are faster but modems are more reliable</div>
+                    <div class="check-option">B) Network cards use network cables or wireless signals; modems use telephone lines</div>
+                    <div class="check-option">C) Network cards are only for businesses; modems are for home use</div>
+                    <div class="check-option">D) There is no difference; the terms are interchangeable</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> Network Interface Cards (NICs) connect computers to local area networks (LANs) using Ethernet cables or wireless radio frequencies (Wi-Fi). Modems (modulator-demodulator) convert digital signals to analog for transmission over telephone lines and vice versa.
+                    </div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="1">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> When is a dedicated sound card necessary instead of using integrated motherboard audio?</p>
+                    <div class="check-option">A) Professional audio production, recording studios, or when high-fidelity output is critical</div>
+                    <div class="check-option">B) For playing any music or watching videos</div>
+                    <div class="check-option">C) Only when using external speakers</div>
+                    <div class="check-option">D) Sound cards are obsolete and never necessary</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> Modern motherboards include integrated audio that's sufficient for most users. However, professionals in audio production, recording studios, or audiophiles requiring the highest fidelity benefit from dedicated sound cards offering superior digital-to-analog converters, lower latency, and professional-grade inputs/outputs.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LESSON 10: Power & Cooling -->
+            <div class="lesson" id="lesson10">
+                <h2>Lesson 10: Power Supply and System Cooling</h2>
+
+                <div class="key-concept">
+                    <strong>Critical Requirements:</strong> Computers need stable electrical power to operate and effective cooling to prevent heat damage. The PSU converts AC power from the wall to DC power for components, while cooling systems dissipate heat generated during operation.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>A gaming computer keeps shutting down unexpectedly during intensive use. You suspect either inadequate power supply or insufficient cooling. Help diagnose the importance of both systems and identify solutions.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Power Supply Unit (PSU) Functions</h3>
+                    <div class="data-structure">
+                        <div class="data-card">
+                            <h4>⚡ PSU Responsibilities</h4>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li><strong>Convert AC to DC:</strong> Wall power (120V/240V AC) → Computer components (3.3V, 5V, 12V DC)</li>
+                                <li><strong>Regulate voltage:</strong> Provide stable, clean power despite fluctuations</li>
+                                <li><strong>Distribute power:</strong> Multiple connectors for motherboard, CPU, GPU, drives</li>
+                                <li><strong>Protect components:</strong> Over-voltage, over-current, short-circuit protection</li>
+                            </ul>
+                        </div>
+                        <div class="data-card">
+                            <h4>🔢 PSU Wattage Considerations</h4>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li><strong>Basic PC:</strong> 300-450W (office work, web browsing)</li>
+                                <li><strong>Gaming PC:</strong> 550-750W (mid-range GPU)</li>
+                                <li><strong>High-end Gaming/Workstation:</strong> 850-1000W+ (powerful GPU, overclocking)</li>
+                                <li><strong>Rule of thumb:</strong> 20-30% headroom above calculated power draw</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Cooling Methods and Their Applications</h3>
+                    <table>
+                        <tr>
+                            <th>Cooling Method</th>
+                            <th>How It Works</th>
+                            <th>Best Application</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Case Fans</strong></td>
+                            <td>Move air through the case to exhaust hot air and bring in cool air</td>
+                            <td>General system cooling, standard for all computers</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CPU Heat Sink + Fan</strong></td>
+                            <td>Metal fins dissipate heat from CPU; fan actively cools the heat sink</td>
+                            <td>Standard CPU cooling, included with most processors</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Liquid Cooling (AIO)</strong></td>
+                            <td>Coolant circulates through CPU water block to radiator where fans dissipate heat</td>
+                            <td>High-performance CPUs, quieter operation, overclocking</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Custom Loop Cooling</strong></td>
+                            <td>Custom water cooling for CPU and GPU with reservoir, pump, and radiators</td>
+                            <td>Extreme overclocking, enthusiast builds, maximum heat dissipation</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="key-concept">
+                    <strong>Heat Generation Reality:</strong> The CPU generates the most concentrated heat in a system, with modern processors producing 65-250 watts of thermal energy. High-end GPUs can generate even more (200-450W). Without proper cooling, components can reach critical temperatures (95-100°C) and throttle performance or shut down to prevent permanent damage.
+                </div>
+
+                <div class="interactive-section">
+                    <h3>🌡️ Thermal Management Scenarios</h3>
+                    <p>Match each computer build to its appropriate cooling solution:</p>
+                    <div style="background:var(--bg-tertiary);padding:20px;border-radius:8px;margin-top:14px;">
+                        <div class="drop-zone" data-correct="stock">
+                            <div class="drop-zone-label">Build 1: Office PC (i3 processor, no GPU, standard case)</div>
+                        </div>
+                        <div class="drop-zone" data-correct="aio">
+                            <div class="drop-zone-label">Build 2: Gaming PC (i7 processor, RTX GPU, quiet operation desired)</div>
+                        </div>
+                        <div class="drop-zone" data-correct="custom">
+                            <div class="drop-zone-label">Build 3: Overclocked workstation (i9 at 5.5GHz, dual high-end GPUs)</div>
+                        </div>
+                        <hr style="margin:20px 0;border-color:var(--border-color);">
+                        <div id="coolingItems">
+                            <div class="drag-item" draggable="true" data-cooling="stock">Stock heat sink + fan with case fans</div>
+                            <div class="drag-item" draggable="true" data-cooling="aio">All-in-One liquid cooler (240mm radiator)</div>
+                            <div class="drag-item" draggable="true" data-cooling="custom">Custom water cooling loop with multiple radiators</div>
+                        </div>
+                    </div>
+                    <button id="checkCooling" style="margin-top:14px;">Check Answers</button>
+                    <div class="feedback-box" id="feedback10"></div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="3">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> Why do CPUs specifically require more active cooling than most other components?</p>
+                    <div class="check-option">A) CPUs are the largest components in the computer</div>
+                    <div class="check-option">B) CPUs are located in the hottest part of the case</div>
+                    <div class="check-option">C) CPUs generate concentrated heat due to billions of transistors switching states millions of times per second</div>
+                    <div class="check-option">D) CPUs are made of materials that naturally produce more heat</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> Modern CPUs contain billions of microscopic transistors packed into a small area. When these transistors switch between on/off states billions of times per second during processing, they generate significant heat concentrated in a tiny space. Without proper cooling, this heat buildup would quickly damage the processor.
+                    </div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="2">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> What is the primary function of a computer's Power Supply Unit (PSU)?</p>
+                    <div class="check-option">A) To provide backup power during electrical outages</div>
+                    <div class="check-option">B) To convert AC power from the wall outlet into regulated DC power for computer components</div>
+                    <div class="check-option">C) To charge the computer's internal battery</div>
+                    <div class="check-option">D) To measure power consumption for billing purposes</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> The PSU's main job is power conversion and regulation. It takes alternating current (AC) from your wall outlet (120V or 240V) and converts it to the lower-voltage direct current (DC) that computer components need (typically 3.3V, 5V, and 12V rails).
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPLETION SCREEN -->
+            <div class="lesson" id="lessonComplete">
+                <div class="completion-hero">
+                    <div class="completion-icon">🎓</div>
+                    <div class="completion-title">Module 1 Complete!</div>
+                    <div class="completion-subtitle">Excellent work mastering all Computing Fundamentals</div>
+                </div>
+
+                <div class="completion-grid">
+                    <div class="completion-card">
+                        <div class="completion-card-icon">💾</div>
+                        <h4>Storage Expertise</h4>
+                        <p>You understand the differences between HDDs, SSDs, and NVMe drives and when to use each.</p>
+                    </div>
+                    <div class="completion-card">
+                        <div class="completion-card-icon">🎮</div>
+                        <h4>Graphics Knowledge</h4>
+                        <p>You can explain GPU functions, VRAM, and the difference between integrated and dedicated graphics.</p>
+                    </div>
+                    <div class="completion-card">
+                        <div class="completion-card-icon">💿</div>
+                        <h4>Optical Media Mastery</h4>
+                        <p>You know the capacities and technologies behind CD, DVD, and Blu-ray formats.</p>
+                    </div>
+                    <div class="completion-card">
+                        <div class="completion-card-icon">🔌</div>
+                        <h4>Expansion & Power</h4>
+                        <p>You understand expansion cards, power requirements, and cooling solutions for various systems.</p>
+                    </div>
+                </div>
+
+                <div class="recap-section">
+                    <h3>📝 Key Terms Reviewed in Part 2</h3>
+                    <div class="recap-tags">
+                        <span class="recap-tag">HDD</span>
+                        <span class="recap-tag">SSD</span>
+                        <span class="recap-tag">NVMe</span>
+                        <span class="recap-tag">NON-VOLATILE</span>
+                        <span class="recap-tag">GPU</span>
+                        <span class="recap-tag">VRAM</span>
+                        <span class="recap-tag">PARALLEL PROCESSING</span>
+                        <span class="recap-tag">CD-ROM</span>
+                        <span class="recap-tag">DVD-ROM</span>
+                        <span class="recap-tag">BD-ROM</span>
+                        <span class="recap-tag">VIDEO CARD</span>
+                        <span class="recap-tag">SOUND CARD</span>
+                        <span class="recap-tag">NIC</span>
+                        <span class="recap-tag">MODEM</span>
+                        <span class="recap-tag">PSU</span>
+                        <span class="recap-tag">HEAT SINK</span>
+                        <span class="recap-tag">LIQUID COOLING</span>
+                    </div>
+                </div>
+
+                <div class="key-concept" style="margin-top:24px;">
+                    <strong>🎯 CompTIA Tech+ Module 1 Complete:</strong> You've now covered all exam essentials for Module 1. You understand the four computing functions, data units, processing speeds, motherboard components, BIOS, storage technologies, graphics processing, optical media, expansion cards, and power/cooling systems. Review both Part 1 and Part 2 before your exam to ensure mastery of all concepts.
+                </div>
+
+                <div class="navigation-buttons" style="justify-content:center;margin-top:30px;">
+                    <button class="secondary" id="btnRestart">↺ Restart from Lesson 6</button>
+                </div>
+            </div>
+
+            <!-- NAVIGATION -->
+            <div class="navigation-buttons" id="mainNav">
+                <button class="secondary" id="btnPrev">← Previous</button>
+                <button id="btnNext">Next →</button>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────
+var currentLesson = 6;
+var totalLessons  = 10;
+var completedLessons = {};
+
+// ─── Navigation ──────────────────────────────────
+function showLesson(n) {
+    document.querySelectorAll('.lesson').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('lesson' + n).classList.add('active');
+    document.querySelectorAll('.concept-nav li').forEach(function(el){ el.classList.remove('active'); });
+    document.querySelector('[data-lesson="' + n + '"]').classList.add('active');
+    document.getElementById('progressIndicator').textContent = 'Lesson ' + n + ' of ' + totalLessons;
+    currentLesson = n;
+    window.scrollTo(0, 0);
+}
+
+document.getElementById('btnNext').addEventListener('click', function(){
+    completedLessons[currentLesson] = true;
+    document.querySelector('[data-lesson="' + currentLesson + '"]').classList.add('completed');
+    if (currentLesson < totalLessons) {
+        showLesson(currentLesson + 1);
+    } else {
+        document.querySelectorAll('.lesson').forEach(function(el){ el.classList.remove('active'); });
+        document.getElementById('lessonComplete').classList.add('active');
+        document.getElementById('mainNav').style.display = 'none';
+        document.querySelectorAll('.concept-nav li').forEach(function(el){ el.classList.remove('active'); });
+        document.getElementById('progressIndicator').textContent = 'Module 1 Complete! ✓';
+        window.scrollTo(0, 0);
+    }
+});
+
+document.getElementById('btnPrev').addEventListener('click', function(){
+    if (currentLesson > 6) showLesson(currentLesson - 1);
+});
+
+document.getElementById('btnRestart').addEventListener('click', function(){
+    document.getElementById('mainNav').style.display = 'flex';
+    showLesson(6);
+});
+
+document.querySelectorAll('.concept-nav li').forEach(function(li){
+    li.addEventListener('click', function(){
+        showLesson(parseInt(this.getAttribute('data-lesson')));
+    });
+});
+
+// ─── Lesson 6: Storage Matching ──────────────────
+(function(){
+    var draggedItem = null;
+    var items = document.querySelectorAll('#storageItems .drag-item');
+    var zones = document.querySelectorAll('#lesson6 .drop-zone');
+
+    items.forEach(function(item){
+        item.addEventListener('dragstart', function(e){
+            draggedItem = this;
+            this.classList.add('dragging');
+        });
+        item.addEventListener('dragend', function(){
+            this.classList.remove('dragging');
+        });
+    });
+
+    zones.forEach(function(zone){
+        zone.addEventListener('dragover', function(e){ e.preventDefault(); });
+        zone.addEventListener('drop', function(e){
+            e.preventDefault();
+            if (draggedItem) {
+                this.appendChild(draggedItem);
+            }
+        });
+    });
+
+    document.getElementById('checkStorage').addEventListener('click', function(){
+        var correct = true;
+        zones.forEach(function(zone){
+            var expectedType = zone.getAttribute('data-correct');
+            var droppedItem = zone.querySelector('.drag-item');
+            if (!droppedItem || droppedItem.getAttribute('data-storage') !== expectedType) {
+                correct = false;
+                zone.classList.add('incorrect');
+                zone.classList.remove('correct');
+            } else {
+                zone.classList.add('correct');
+                zone.classList.remove('incorrect');
+            }
+        });
+
+        var fb = document.getElementById('feedback6');
+        if (correct) {
+            fb.className = 'feedback-box success show';
+            fb.innerHTML = '✅ Perfect! NVMe for maximum performance, HDD for large budget-friendly storage, and SSD for fast OS boot times. You understand the trade-offs between speed, capacity, and cost.';
+        } else {
+            fb.className = 'feedback-box error show';
+            fb.innerHTML = '❌ Consider the priorities: video editing needs speed (NVMe), archives need capacity (HDD), and OS needs fast boot (SSD).';
+        }
+    });
+})();
+
+// ─── Lesson 9: Expansion Cards ───────────────────
+(function(){
+    var draggedItem = null;
+    var items = document.querySelectorAll('#expansionItems .drag-item');
+    var zones = document.querySelectorAll('#lesson9 .drop-zone');
+
+    items.forEach(function(item){
+        item.addEventListener('dragstart', function(e){
+            draggedItem = this;
+            this.classList.add('dragging');
+        });
+        item.addEventListener('dragend', function(){
+            this.classList.remove('dragging');
+        });
+    });
+
+    zones.forEach(function(zone){
+        zone.addEventListener('dragover', function(e){ e.preventDefault(); });
+        zone.addEventListener('drop', function(e){
+            e.preventDefault();
+            if (draggedItem) {
+                this.appendChild(draggedItem);
+            }
+        });
+    });
+
+    document.getElementById('checkExpansion').addEventListener('click', function(){
+        var correct = true;
+        zones.forEach(function(zone){
+            var expectedType = zone.getAttribute('data-correct');
+            var droppedItems = zone.querySelectorAll('.drag-item');
+            var allCorrect = true;
+            
+            droppedItems.forEach(function(item){
+                if (item.getAttribute('data-expansion') !== expectedType) {
+                    allCorrect = false;
+                }
+            });
+
+            if (!allCorrect || droppedItems.length === 0) {
+                correct = false;
+                zone.classList.add('incorrect');
+                zone.classList.remove('correct');
+            } else {
+                zone.classList.add('correct');
+                zone.classList.remove('incorrect');
+            }
+        });
+
+        var fb = document.getElementById('feedback9');
+        if (correct) {
+            fb.className = 'feedback-box success show';
+            fb.innerHTML = '✅ Excellent! Video cards handle displays and 3D rendering, sound cards process professional audio, and network cards provide connectivity.';
+        } else {
+            fb.className = 'feedback-box error show';
+            fb.innerHTML = '❌ Think about which hardware handles each specific function: displays/graphics, audio processing, or network connections.';
+        }
+    });
+})();
+
+// ─── Lesson 10: Cooling Matching ──────────────────
+(function(){
+    var draggedItem = null;
+    var items = document.querySelectorAll('#coolingItems .drag-item');
+    var zones = document.querySelectorAll('#lesson10 .drop-zone');
+
+    items.forEach(function(item){
+        item.addEventListener('dragstart', function(e){
+            draggedItem = this;
+            this.classList.add('dragging');
+        });
+        item.addEventListener('dragend', function(){
+            this.classList.remove('dragging');
+        });
+    });
+
+    zones.forEach(function(zone){
+        zone.addEventListener('dragover', function(e){ e.preventDefault(); });
+        zone.addEventListener('drop', function(e){
+            e.preventDefault();
+            if (draggedItem) {
+                this.appendChild(draggedItem);
+            }
+        });
+    });
+
+    document.getElementById('checkCooling').addEventListener('click', function(){
+        var correct = true;
+        zones.forEach(function(zone){
+            var expectedType = zone.getAttribute('data-correct');
+            var droppedItem = zone.querySelector('.drag-item');
+            if (!droppedItem || droppedItem.getAttribute('data-cooling') !== expectedType) {
+                correct = false;
+                zone.classList.add('incorrect');
+                zone.classList.remove('correct');
+            } else {
+                zone.classList.add('correct');
+                zone.classList.remove('incorrect');
+            }
+        });
+
+        var fb = document.getElementById('feedback10');
+        if (correct) {
+            fb.className = 'feedback-box success show';
+            fb.innerHTML = '✅ Perfect! Stock cooling for basic office work, AIO liquid cooling for gaming performance and quiet operation, and custom loops for extreme overclocked builds.';
+        } else {
+            fb.className = 'feedback-box error show';
+            fb.innerHTML = '❌ Match cooling solutions to heat output: basic PCs need basic cooling, gaming PCs benefit from liquid cooling, extreme builds require custom loops.';
+        }
+    });
+})();
+
+// ─── Single-select questions (all lessons) ─
+(function(){
+    document.querySelectorAll('.single-q').forEach(function(qBlock){
+        var answer = qBlock.getAttribute('data-answer');
+        var options = qBlock.querySelectorAll('.check-option');
+        var explanation = qBlock.querySelector('.explanation');
+        
+        options.forEach(function(opt, idx){
+            opt.addEventListener('click', function(){
+                if (this.classList.contains('disabled')) return;
+                
+                options.forEach(function(o){ o.classList.add('disabled'); });
+                
+                var chosen = idx + 1;
+                if (String(chosen) === answer) {
+                    this.classList.add('correct');
+                } else {
+                    this.classList.add('incorrect');
+                    options[parseInt(answer) - 1].classList.add('correct');
+                }
+                
+                if (explanation) {
+                    explanation.classList.add('show');
+                }
+            });
+        });
+    });
+})();
+</script>
+
+</body>
+</html>

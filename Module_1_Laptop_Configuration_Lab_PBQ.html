@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laptop Configuration Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161921;
+    --surface2: #1e2330;
+    --border: #2a2f3d;
+    --accent-a: #00e5ff;
+    --accent-b: #ff4d6d;
+    --accent-g: #39ff14;
+    --text: #e8eaf0;
+    --text-muted: #7a8099;
+    --correct: #39ff14;
+    --warn: #ffcc00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background-image: 
+      radial-gradient(ellipse at 20% 0%, rgba(0,229,255,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(255,77,109,0.06) 0%, transparent 50%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  header .lab-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    color: var(--accent-a);
+    border: 1px solid var(--accent-a);
+    display: inline-block;
+    padding: 4px 14px;
+    margin-bottom: 1rem;
+  }
+
+  header h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(135deg, var(--text) 40%, var(--accent-a));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p {
+    color: var(--text-muted);
+    margin-top: 0.75rem;
+    font-size: 1rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+
+  .objective-box {
+    background: var(--surface);
+    border-left: 3px solid var(--accent-a);
+    padding: 1.25rem 1.5rem;
+    max-width: 860px;
+    margin: 0 auto 3rem;
+    border-radius: 0 8px 8px 0;
+    animation: fadeDown 0.7s ease 0.1s both;
+  }
+
+  .objective-box h2 {
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    color: var(--accent-a);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 0.5rem;
+  }
+
+  .objective-box p { color: var(--text-muted); line-height: 1.7; font-size: 0.95rem; }
+
+  .lab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .laptop-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .laptop-card:nth-child(2) { animation-delay: 0.15s; }
+
+  .card-header {
+    padding: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-header.business { background: linear-gradient(135deg, rgba(0,229,255,0.08), transparent); }
+  .card-header.gaming { background: linear-gradient(135deg, rgba(255,77,109,0.08), transparent); }
+
+  .laptop-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .laptop-icon.business { background: rgba(0,229,255,0.12); }
+  .laptop-icon.gaming { background: rgba(255,77,109,0.12); }
+
+  .card-header-text h2 { font-size: 1.3rem; font-weight: 800; }
+  .card-header-text .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 3px; }
+
+  .scenario-box {
+    margin: 1.25rem;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+    border: 1px solid var(--border);
+  }
+
+  .scenario-box strong { color: var(--text); }
+
+  .components-section { padding: 0 1.25rem 1.5rem; }
+
+  .component-group {
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .component-group.answered { border-color: var(--correct); }
+  .component-group.wrong { border-color: var(--accent-b); }
+
+  .component-label {
+    background: var(--surface2);
+    padding: 0.65rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .component-label span {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+
+  .answered .status-dot { background: var(--correct); box-shadow: 0 0 6px var(--correct); }
+  .wrong .status-dot { background: var(--accent-b); }
+
+  .select-wrapper { position: relative; padding: 0.75rem 1rem; }
+
+  select {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    appearance: none;
+    cursor: pointer;
+    padding-right: 1.5rem;
+    outline: none;
+  }
+
+  select option {
+    background: #1e2330;
+    color: var(--text);
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    font-size: 0.75rem;
+  }
+
+  .feedback-box {
+    margin: 0 1.25rem 1rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.87rem;
+    line-height: 1.6;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .feedback-box.correct-fb {
+    background: rgba(57,255,20,0.07);
+    border: 1px solid rgba(57,255,20,0.3);
+    color: #a8ffb8;
+    display: block;
+  }
+
+  .feedback-box.wrong-fb {
+    background: rgba(255,77,109,0.07);
+    border: 1px solid rgba(255,77,109,0.3);
+    color: #ffb3be;
+    display: block;
+  }
+
+
+  .score-bar {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .score-label { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--text-muted); }
+  .score-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .score-fill { height: 100%; background: var(--accent-g); border-radius: 2px; transition: width 0.5s ease; }
+  .score-num { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--accent-g); }
+
+  .reveal-all-btn {
+    display: block;
+    max-width: 860px;
+    margin: 2rem auto 0;
+    padding: 1rem 2rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .reveal-all-btn:hover { border-color: var(--accent-a); color: var(--accent-a); }
+
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="lab-tag">INTERACTIVE LAB</div>
+  <h1>Laptop Configuration Lab</h1>
+  <p>Select the correct hardware components for each use case. Make cost-effective decisions — always choose the cheapest option that meets the requirements.</p>
+</header>
+
+<div class="objective-box">
+  <h2>🎯 Lab Objective</h2>
+  <p>You are a junior IT consultant helping two clients purchase laptops. <strong>Client A</strong> runs a small home business needing basic software and large storage for inventory. <strong>Client B</strong> is a power user who games at high settings and gives multimedia presentations. For each client, select the most appropriate (and cost-effective) component from each dropdown — <strong>feedback appears instantly</strong> after every selection. Your score updates in real time as you go.</p>
+</div>
+
+<div class="lab-grid">
+
+  <!-- LAPTOP 1: HOME BUSINESS -->
+  <div class="laptop-card" id="card-a">
+    <div class="card-header business">
+      <div class="laptop-icon business">💼</div>
+      <div class="card-header-text">
+        <h2>Laptop A — Home Business</h2>
+        <div class="subtitle">Budget-conscious · Inventory storage · Basic software</div>
+      </div>
+    </div>
+    <div class="scenario-box">
+      <strong>Scenario:</strong> Your client manages a small retail business from home. They run QuickBooks, Microsoft Office, and a basic inventory database. They need to store <strong>thousands of product photos and spreadsheets</strong>. Budget is tight — no gaming, no video editing. Choose the cheapest parts that will get the job done reliably.
+    </div>
+
+    <div class="components-section" id="components-a">
+
+      <!-- Processor -->
+      <div class="component-group" id="a-processor">
+        <div class="component-label"><span>Processor</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','processor',this.value)">
+            <option value="">— Select processor —</option>
+            <option value="wrong">2.0 GHz AMD Ryzen 7</option>
+            <option value="correct">1.3 GHz Intel Core i5</option>
+            <option value="wrong2">2.5 GHz Intel Core i5</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-processor-fb"></div>
+      </div>
+
+      <!-- RAM -->
+      <div class="component-group" id="a-ram">
+        <div class="component-label"><span>System Memory (RAM)</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','ram',this.value)">
+            <option value="">— Select RAM —</option>
+            <option value="wrong">16 GB DDR4</option>
+            <option value="correct">8 GB DDR4</option>
+            <option value="wrong2">16 GB DDR5</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-ram-fb"></div>
+      </div>
+
+      <!-- RAM Expandability -->
+      <div class="component-group" id="a-ramexp">
+        <div class="component-label"><span>RAM Expandability</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','ramexp',this.value)">
+            <option value="">— Select expandability —</option>
+            <option value="correct">Non-expandable (lower cost)</option>
+            <option value="wrong">Expandable to 32 GB</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-ramexp-fb"></div>
+      </div>
+
+      <!-- Storage Type -->
+      <div class="component-group" id="a-storage">
+        <div class="component-label"><span>Storage Drive Type</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','storage',this.value)">
+            <option value="">— Select drive type —</option>
+            <option value="correct">2.5-inch HDD</option>
+            <option value="wrong">2.5-inch SSD</option>
+            <option value="wrong2">M.2 SATA</option>
+            <option value="wrong3">M.2 NVMe</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-storage-fb"></div>
+      </div>
+
+      <!-- Storage Size -->
+      <div class="component-group" id="a-storagesize">
+        <div class="component-label"><span>Storage Capacity</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','storagesize',this.value)">
+            <option value="">— Select capacity —</option>
+            <option value="wrong">256 GB</option>
+            <option value="wrong2">512 GB</option>
+            <option value="correct">1 TB</option>
+            <option value="wrong3">2 TB</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-storagesize-fb"></div>
+      </div>
+
+      <!-- Graphics -->
+      <div class="component-group" id="a-graphics">
+        <div class="component-label"><span>Graphics</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','graphics',this.value)">
+            <option value="">— Select graphics —</option>
+            <option value="wrong">AMD Radeon (dedicated)</option>
+            <option value="correct">Intel Iris XE integrated</option>
+            <option value="correct2">Intel UHD integrated</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-graphics-fb"></div>
+      </div>
+
+      <!-- Video Memory -->
+      <div class="component-group" id="a-vram">
+        <div class="component-label"><span>Video Memory</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','vram',this.value)">
+            <option value="">— Select video memory —</option>
+            <option value="wrong">2 GB Dedicated</option>
+            <option value="correct">Shared (integrated)</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-vram-fb"></div>
+      </div>
+
+      <!-- Sound Card -->
+      <div class="component-group" id="a-sound">
+        <div class="component-label"><span>Sound Card</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','sound',this.value)">
+            <option value="">— Select sound card —</option>
+            <option value="correct">5.1-channel integrated</option>
+            <option value="wrong">7.1-channel integrated</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-sound-fb"></div>
+      </div>
+
+      <!-- Network Card -->
+      <div class="component-group" id="a-network">
+        <div class="component-label"><span>Network Card</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','network',this.value)">
+            <option value="">— Select network card —</option>
+            <option value="correct">Wireless AC</option>
+            <option value="wrong">Wireless AX (Wi-Fi 6)</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-network-fb"></div>
+      </div>
+
+      <!-- Display Ports -->
+      <div class="component-group" id="a-ports">
+        <div class="component-label"><span>Display Ports</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','ports',this.value)">
+            <option value="">— Select display ports —</option>
+            <option value="correct">HDMI only</option>
+            <option value="wrong">HDMI + 2x Thunderbolt</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-ports-fb"></div>
+      </div>
+
+      <!-- Touchscreen -->
+      <div class="component-group" id="a-touch">
+        <div class="component-label"><span>Touchscreen</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','touch',this.value)">
+            <option value="">— Select display type —</option>
+            <option value="correct">Standard display (no touch)</option>
+            <option value="wrong">Touchscreen display</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-touch-fb"></div>
+      </div>
+
+      <!-- Operating System -->
+      <div class="component-group" id="a-os">
+        <div class="component-label"><span>Operating System</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('a','os',this.value)">
+            <option value="">— Select OS —</option>
+            <option value="correct">Windows 11 Home</option>
+            <option value="wrong">Windows 11 Pro</option>
+            <option value="wrong2">Windows 11 Pro for Workstations</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="a-os-fb"></div>
+      </div>
+
+    </div><!-- end components-a -->
+
+    <div id="a-global-fb" class="feedback-box" style="margin:0 1.25rem 0.75rem;"></div>
+
+    <div class="score-bar">
+      <span class="score-label">SCORE</span>
+      <div class="score-track"><div class="score-fill" id="a-score-fill" style="width:0%"></div></div>
+      <span class="score-num" id="a-score-num">0 / 12</span>
+    </div>
+  </div>
+
+
+  <!-- LAPTOP 2: GAMING + PRESENTATIONS -->
+  <div class="laptop-card" id="card-b">
+    <div class="card-header gaming">
+      <div class="laptop-icon gaming">🎮</div>
+      <div class="card-header-text">
+        <h2>Laptop B — Gaming & Presentations</h2>
+        <div class="subtitle">High-end gaming · Multimedia presentations · Power user</div>
+      </div>
+    </div>
+    <div class="scenario-box">
+      <strong>Scenario:</strong> Your client plays graphically demanding games, uses presentation software with videos and animations, and connects to external monitors at conferences. They need <strong>maximum performance and future-proofing</strong> — but still want the cheapest configuration that handles all these tasks without compromise.
+    </div>
+
+    <div class="components-section" id="components-b">
+
+      <!-- Processor -->
+      <div class="component-group" id="b-processor">
+        <div class="component-label"><span>Processor</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','processor',this.value)">
+            <option value="">— Select processor —</option>
+            <option value="correct">2.0 GHz AMD Ryzen 7</option>
+            <option value="wrong">1.3 GHz Intel Core i5</option>
+            <option value="wrong2">2.5 GHz Intel Core i5</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-processor-fb"></div>
+      </div>
+
+      <!-- RAM -->
+      <div class="component-group" id="b-ram">
+        <div class="component-label"><span>System Memory (RAM)</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','ram',this.value)">
+            <option value="">— Select RAM —</option>
+            <option value="correct">16 GB DDR4</option>
+            <option value="wrong">8 GB DDR4</option>
+            <option value="wrong2">16 GB DDR5</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-ram-fb"></div>
+      </div>
+
+      <!-- RAM Expandability -->
+      <div class="component-group" id="b-ramexp">
+        <div class="component-label"><span>RAM Expandability</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','ramexp',this.value)">
+            <option value="">— Select expandability —</option>
+            <option value="correct">Expandable to 32 GB</option>
+            <option value="wrong">Non-expandable</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-ramexp-fb"></div>
+      </div>
+
+      <!-- Storage Type -->
+      <div class="component-group" id="b-storage">
+        <div class="component-label"><span>Storage Drive Type</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','storage',this.value)">
+            <option value="">— Select drive type —</option>
+            <option value="wrong">2.5-inch HDD</option>
+            <option value="wrong2">2.5-inch SSD</option>
+            <option value="wrong3">M.2 SATA</option>
+            <option value="correct">M.2 NVMe</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-storage-fb"></div>
+      </div>
+
+      <!-- Storage Size -->
+      <div class="component-group" id="b-storagesize">
+        <div class="component-label"><span>Storage Capacity</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','storagesize',this.value)">
+            <option value="">— Select capacity —</option>
+            <option value="wrong">256 GB</option>
+            <option value="correct">512 GB</option>
+            <option value="wrong2">1 TB</option>
+            <option value="wrong3">2 TB</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-storagesize-fb"></div>
+      </div>
+
+      <!-- Graphics -->
+      <div class="component-group" id="b-graphics">
+        <div class="component-label"><span>Graphics</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','graphics',this.value)">
+            <option value="">— Select graphics —</option>
+            <option value="correct">AMD Radeon (dedicated)</option>
+            <option value="wrong">Intel Iris XE integrated</option>
+            <option value="wrong2">Intel UHD integrated</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-graphics-fb"></div>
+      </div>
+
+      <!-- Video Memory -->
+      <div class="component-group" id="b-vram">
+        <div class="component-label"><span>Video Memory</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','vram',this.value)">
+            <option value="">— Select video memory —</option>
+            <option value="correct">2 GB Dedicated</option>
+            <option value="wrong">Shared (integrated)</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-vram-fb"></div>
+      </div>
+
+      <!-- Sound Card -->
+      <div class="component-group" id="b-sound">
+        <div class="component-label"><span>Sound Card</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','sound',this.value)">
+            <option value="">— Select sound card —</option>
+            <option value="correct">7.1-channel integrated</option>
+            <option value="wrong">5.1-channel integrated</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-sound-fb"></div>
+      </div>
+
+      <!-- Network Card -->
+      <div class="component-group" id="b-network">
+        <div class="component-label"><span>Network Card</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','network',this.value)">
+            <option value="">— Select network card —</option>
+            <option value="wrong">Wireless AC</option>
+            <option value="correct">Wireless AX (Wi-Fi 6)</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-network-fb"></div>
+      </div>
+
+      <!-- Display Ports -->
+      <div class="component-group" id="b-ports">
+        <div class="component-label"><span>Display Ports</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','ports',this.value)">
+            <option value="">— Select display ports —</option>
+            <option value="wrong">HDMI only</option>
+            <option value="correct">HDMI + 2x Thunderbolt</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-ports-fb"></div>
+      </div>
+
+      <!-- Touchscreen -->
+      <div class="component-group" id="b-touch">
+        <div class="component-label"><span>Touchscreen</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','touch',this.value)">
+            <option value="">— Select display type —</option>
+            <option value="correct">Touchscreen display</option>
+            <option value="wrong">Standard display (no touch)</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-touch-fb"></div>
+      </div>
+
+      <!-- Operating System -->
+      <div class="component-group" id="b-os">
+        <div class="component-label"><span>Operating System</span><div class="status-dot"></div></div>
+        <div class="select-wrapper">
+          <select onchange="handleChange('b','os',this.value)">
+            <option value="">— Select OS —</option>
+            <option value="wrong">Windows 11 Home</option>
+            <option value="correct">Windows 11 Pro</option>
+            <option value="wrong2">Windows 11 Pro for Workstations</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="feedback-box" id="b-os-fb"></div>
+      </div>
+
+    </div>
+
+    <div id="b-global-fb" class="feedback-box" style="margin:0 1.25rem 0.75rem;"></div>
+
+    <div class="score-bar">
+      <span class="score-label">SCORE</span>
+      <div class="score-track"><div class="score-fill" id="b-score-fill" style="width:0%"></div></div>
+      <span class="score-num" id="b-score-num">0 / 12</span>
+    </div>
+  </div>
+
+</div><!-- end lab-grid -->
+
+<button class="reveal-all-btn" onclick="revealAll()">📋 Reveal All Correct Answers</button>
+
+<script>
+const feedback = {
+  a: {
+    processor: {
+      correct:  "✅ <strong>1.3 GHz Intel Core i5</strong> — Perfect. For email, Office, and a basic inventory database, a mid-range i5 is more than sufficient. The Ryzen 7 is overkill and costs more. The 2.5 GHz i5 is faster but also pricier.",
+      wrong:    "❌ <strong>AMD Ryzen 7</strong> is a high-performance chip designed for demanding workloads. It's great hardware, but the client only runs basic productivity software. You'd be paying a premium for power they'll never use.",
+      wrong2:   "❌ <strong>2.5 GHz Intel Core i5</strong> works, but it's more expensive than the 1.3 GHz model. For light business tasks, the lower-clock version handles the load just fine and saves money."
+    },
+    ram: {
+      correct:  "✅ <strong>8 GB DDR4</strong> — Ideal for basic business use. Office, QuickBooks, and a browser run comfortably in 8 GB. DDR4 is the current-gen standard at a lower price point than DDR5.",
+      wrong:    "❌ <strong>16 GB DDR4</strong> is double what this client needs. It would work, but you're spending more than necessary for tasks that don't tax memory.",
+      wrong2:   "❌ <strong>16 GB DDR5</strong> is newer and faster, but DDR5 laptops cost significantly more. The speed advantage is imperceptible in basic productivity tasks."
+    },
+    ramexp: {
+      correct:  "✅ <strong>Non-expandable</strong> is fine here — 8 GB is already sufficient for basic tasks, and soldered RAM lowers the laptop's cost. No future expansion is needed for this use case.",
+      wrong:    "❌ <strong>Expandable to 32 GB</strong> adds cost to the chassis design and is unnecessary when 8 GB already exceeds this client's needs."
+    },
+    storage: {
+      correct:  "✅ <strong>2.5-inch HDD</strong> — The cheapest way to get large storage capacity. This client needs lots of space for product photos and files, not raw speed. HDDs deliver terabytes at a fraction of SSD cost.",
+      wrong:    "❌ <strong>2.5-inch SSD</strong> is faster but costs 3–4x more per gigabyte. For storing inventory data and documents, speed doesn't matter — capacity does.",
+      wrong2:   "❌ <strong>M.2 SATA</strong> is faster and more compact, but more expensive. The performance upgrade isn't needed for this workflow.",
+      wrong3:   "❌ <strong>M.2 NVMe</strong> is the fastest consumer drive available but also the most expensive. Reserve it for performance-critical systems."
+    },
+    storagesize: {
+      correct:  "✅ <strong>1 TB</strong> — A sweet spot for an inventory-heavy business. Thousands of product photos and spreadsheets comfortably fit here. 256/512 GB risks running out; 2 TB costs more than needed.",
+      wrong:    "❌ <strong>256 GB</strong> is too small for a business storing lots of inventory images and documents. They'll run out of space quickly.",
+      wrong2:   "❌ <strong>512 GB</strong> might be enough today but could become tight as the business grows. For a small extra cost, 1 TB provides comfortable headroom.",
+      wrong3:   "❌ <strong>2 TB</strong> is more than this client will realistically need and adds unnecessary cost — especially combined with an HDD."
+    },
+    graphics: {
+      correct:  "✅ <strong>Intel Iris XE integrated</strong> — More than sufficient for Office and QuickBooks. Integrated graphics are built into the processor, so there's no additional graphics card cost. The Iris XE even handles light photo viewing.",
+      correct2: "✅ <strong>Intel UHD integrated</strong> — Also acceptable for basic office work. It's slightly older than Iris XE but still handles all standard business tasks with no problem and no extra cost.",
+      wrong:    "❌ <strong>AMD Radeon (dedicated)</strong> is a separate GPU chip that adds cost and draws more power. It provides no benefit for spreadsheets, QuickBooks, or document management."
+    },
+    vram: {
+      correct:  "✅ <strong>Shared (integrated)</strong> — Integrated graphics share the system's RAM, which eliminates the cost of a dedicated video memory chip. For business software, this is perfectly fine.",
+      wrong:    "❌ <strong>2 GB Dedicated VRAM</strong> is only useful when rendering 3D graphics or games. Adding dedicated VRAM for office work is wasted money."
+    },
+    sound: {
+      correct:  "✅ <strong>5.1-channel integrated</strong> — More than adequate for video calls, notification sounds, and the occasional YouTube video. No reason to pay for 7.1 surround in a business context.",
+      wrong:    "❌ <strong>7.1-channel integrated</strong> is designed for immersive audio experiences like gaming or home theater. It adds cost without any business benefit."
+    },
+    network: {
+      correct:  "✅ <strong>Wireless AC</strong> (Wi-Fi 5) — Plenty fast for cloud syncing, video calls, and web browsing. Downloading a large file? AC handles it. Wi-Fi 6 is faster but costs more for no practical benefit here.",
+      wrong:    "❌ <strong>Wireless AX</strong> (Wi-Fi 6) is the latest standard with higher throughput and efficiency, but this client's tasks don't push even Wi-Fi 5 to its limits. The upgrade isn't worth the price premium."
+    },
+    ports: {
+      correct:  "✅ <strong>HDMI only</strong> — The client might occasionally connect an external monitor, and HDMI covers that entirely. Adding Thunderbolt ports significantly raises cost and is unnecessary for basic business use.",
+      wrong:    "❌ <strong>HDMI + 2x Thunderbolt</strong> is a premium port configuration ideal for daisy-chaining high-res monitors or connecting fast external drives. Total overkill for a home business user."
+    },
+    touch: {
+      correct:  "✅ <strong>Standard display</strong> — Touchscreens add cost, consume more battery, and create a glossy surface that's harder to see under office lighting. For keyboard-and-mouse business work, it's an unnecessary upgrade.",
+      wrong:    "❌ <strong>Touchscreen</strong> adds to the price, reduces battery life slightly, and doesn't meaningfully improve a traditional office workflow."
+    },
+    os: {
+      correct:  "✅ <strong>Windows 11 Home</strong> — The right tier for a solo home-based business. It includes everything needed: Microsoft Store, basic security, and compatibility with all business software. Pro costs more for features this client won't use.",
+      wrong:    "❌ <strong>Windows 11 Pro</strong> adds BitLocker, domain joining, and remote desktop — features designed for corporate IT environments. Paying for Pro on a home business machine is unnecessary.",
+      wrong2:   "❌ <strong>Windows 11 Pro for Workstations</strong> is designed for scientific computing and extreme workloads. It's the most expensive tier and completely irrelevant here."
+    }
+  },
+  b: {
+    processor: {
+      correct:  "✅ <strong>AMD Ryzen 7</strong> — The right choice for gaming. The Ryzen 7's multiple cores and threads handle game engines, background processes, and presentation rendering simultaneously. It outperforms both i5 options for sustained gaming workloads.",
+      wrong:    "❌ <strong>1.3 GHz Intel Core i5</strong> is a power-efficient chip designed for light tasks. Gaming and presentation rendering will quickly overwhelm it, causing lag and thermal throttling.",
+      wrong2:   "❌ <strong>2.5 GHz Intel Core i5</strong> has a higher clock speed but fewer cores than the Ryzen 7. Single-threaded tasks would be fast, but modern games and video rendering benefit more from multi-core performance."
+    },
+    ram: {
+      correct:  "✅ <strong>16 GB DDR4</strong> — The gaming standard. Modern titles regularly require 8–12 GB, and presentation software with embedded video needs headroom too. DDR4 at 16 GB is the most cost-effective option that handles these loads.",
+      wrong:    "❌ <strong>8 GB DDR4</strong> is the bare minimum for gaming today and will cause stuttering in demanding titles. It's not suitable for this use case.",
+      wrong2:   "❌ <strong>16 GB DDR5</strong> would also work, but DDR5 laptops carry a significant price premium. DDR4 at the same capacity handles gaming just as well and costs less — making DDR4 the smarter budget choice."
+    },
+    ramexp: {
+      correct:  "✅ <strong>Expandable to 32 GB</strong> — Important for a gamer. Newer AAA titles are pushing past 16 GB requirements. Having a slot to upgrade means this laptop won't become obsolete in 2–3 years without a full replacement.",
+      wrong:    "❌ <strong>Non-expandable</strong> (soldered RAM) locks the system at its current capacity. For a gaming machine, this is a long-term liability as games become more memory-intensive."
+    },
+    storage: {
+      correct:  "✅ <strong>M.2 NVMe</strong> — Gaming demands fast load times. NVMe drives are 5–10x faster than HDDs and 3–4x faster than SATA SSDs. Games, streaming assets, and large presentation files all benefit from NVMe's throughput.",
+      wrong:    "❌ <strong>2.5-inch HDD</strong> is far too slow for gaming. Long load screens, stuttering open-world streams, and slow OS response are common symptoms of gaming on an HDD.",
+      wrong2:   "❌ <strong>2.5-inch SSD</strong> is better than HDD but slower than M.2 options, and it takes up physical space in the chassis — space that a gaming laptop could use for better cooling.",
+      wrong3:   "❌ <strong>M.2 SATA</strong> is compact and faster than a 2.5-inch SSD, but NVMe is noticeably faster, especially for large sequential reads during game loading. For the cost difference, NVMe is worth it."
+    },
+    storagesize: {
+      correct:  "✅ <strong>512 GB NVMe</strong> — Modern games average 50–100 GB each, so 512 GB is a practical minimum. It's more than enough for a few active games plus presentation files, without paying for 1 TB unnecessarily.",
+      wrong:    "❌ <strong>256 GB</strong> will fill up immediately. A handful of modern games alone will exhaust this space.",
+      wrong2:   "❌ <strong>1 TB</strong> would be fine but adds cost. 512 GB on NVMe is already fast and spacious enough for this use case without overspending.",
+      wrong3:   "❌ <strong>2 TB</strong> is excessive for this use case. Unless they're storing a full game library, 2 TB NVMe drives are premium-priced for gaming."
+    },
+    graphics: {
+      correct:  "✅ <strong>AMD Radeon (dedicated GPU)</strong> — Absolutely required for gaming. A dedicated GPU has its own processor and memory specifically for rendering 3D graphics. No integrated chip can match it for game performance.",
+      wrong:    "❌ <strong>Intel Iris XE</strong> is a capable integrated solution for productivity, but will deliver poor framerates in modern games. It's not designed for gaming.",
+      wrong2:   "❌ <strong>Intel UHD</strong> is even more limited. While it can display games, performance will be unplayable at medium-to-high settings in demanding titles."
+    },
+    vram: {
+      correct:  "✅ <strong>2 GB Dedicated VRAM</strong> — Dedicated VRAM is separate from system RAM and is used exclusively by the GPU for textures and frame buffers. It's essential for smooth, high-quality gaming visuals.",
+      wrong:    "❌ <strong>Shared (integrated)</strong> means the GPU borrows from system RAM, which reduces both gaming performance and available RAM for other tasks. Not suitable for gaming."
+    },
+    sound: {
+      correct:  "✅ <strong>7.1-channel integrated</strong> — Gaming relies heavily on positional audio — hearing enemies approach, explosions, ambient detail. 7.1 surround provides a distinct competitive and immersive advantage in gaming environments.",
+      wrong:    "❌ <strong>5.1-channel</strong> is fine for general use, but 7.1 is the preferred standard for gaming audio. The extra rear channels improve spatial awareness in-game."
+    },
+    network: {
+      correct:  "✅ <strong>Wireless AX (Wi-Fi 6)</strong> — Online gaming is sensitive to latency. Wi-Fi 6 offers lower latency, better performance in congested environments (like apartment complexes), and higher sustained throughput — all of which matter for gaming.",
+      wrong:    "❌ <strong>Wireless AC</strong> (Wi-Fi 5) works for gaming but can't match Wi-Fi 6's lower latency and improved performance in high-traffic areas. For competitive gaming, the upgrade is worth it."
+    },
+    ports: {
+      correct:  "✅ <strong>HDMI + 2x Thunderbolt</strong> — Presentations often require connecting to high-resolution projectors or dual monitors. Thunderbolt 4 supports 4K displays, fast external drives, and docking stations. This configuration handles every presentation scenario.",
+      wrong:    "❌ <strong>HDMI only</strong> works for basic monitor connections but limits the gamer/presenter. Thunderbolt enables daisy-chaining displays, connecting Thunderbolt docks, and future-proofing the setup."
+    },
+    touch: {
+      correct:  "✅ <strong>Touchscreen display</strong> — Excellent for presentations! Touch allows natural interaction with slides, zooming into content, and pointing at key data during a live presentation. It's a meaningful professional upgrade for a client who presents regularly.",
+      wrong:    "❌ <strong>Standard display</strong> works for gaming but misses an opportunity to enhance presentations. A touchscreen enables more dynamic, engaging presentations — a real value for this use case."
+    },
+    os: {
+      correct:  "✅ <strong>Windows 11 Pro</strong> — The right tier for a power user. Pro includes BitLocker encryption (important for protecting presentation materials), Remote Desktop, and advanced networking features. It's worth the premium over Home for this client.",
+      wrong:    "❌ <strong>Windows 11 Home</strong> lacks BitLocker and Remote Desktop. A professional gamer/presenter who may travel and connect to corporate networks should have Pro-level security features.",
+      wrong2:   "❌ <strong>Windows 11 Pro for Workstations</strong> supports NUMA architecture and ReFS file systems for scientific computing. It's overkill for gaming and presentations and costs more than Pro without adding relevant features."
+    }
+  }
+};
+
+const selections = { a: {}, b: {} };
+const components = ['processor','ram','ramexp','storage','storagesize','graphics','vram','sound','network','ports','touch','os'];
+
+function handleChange(laptop, comp, val) {
+  selections[laptop][comp] = val;
+  const group = document.getElementById(`${laptop}-${comp}`);
+  const fb = document.getElementById(`${laptop}-${comp}-fb`);
+  const data = feedback[laptop][comp];
+
+  group.classList.remove('answered', 'wrong');
+  fb.className = 'feedback-box';
+  fb.innerHTML = '';
+
+  if (!val) return;
+
+  const isCorrect = val === 'correct' || val === 'correct2';
+  if (isCorrect) {
+    group.classList.add('answered');
+    fb.className = 'feedback-box correct-fb';
+    fb.innerHTML = data[val] || data['correct'];
+  } else {
+    group.classList.add('wrong');
+    fb.className = 'feedback-box wrong-fb';
+    fb.innerHTML = data[val] || '❌ Not the ideal choice for this use case.';
+  }
+
+  // Update live score
+  let correct = 0;
+  components.forEach(c => {
+    const v = selections[laptop][c] || '';
+    if (v === 'correct' || v === 'correct2') correct++;
+  });
+  const pct = Math.round((correct / 12) * 100);
+  document.getElementById(`${laptop}-score-fill`).style.width = pct + '%';
+  document.getElementById(`${laptop}-score-num`).textContent = `${correct} / 12`;
+
+  // Show perfect score message if all done
+  const allAnswered = components.every(c => selections[laptop][c]);
+  const gfb = document.getElementById(`${laptop}-global-fb`);
+  if (allAnswered && correct === 12) {
+    gfb.className = 'feedback-box correct-fb';
+    gfb.innerHTML = `🎉 <strong>Perfect score!</strong> You've correctly configured the ${laptop === 'a' ? 'Home Business' : 'Gaming & Presentations'} laptop. All components match the use case and budget requirements.`;
+  } else if (allAnswered) {
+    gfb.className = 'feedback-box wrong-fb';
+    gfb.innerHTML = `You got <strong>${correct} of 12</strong> correct. Review the red components above and read the explanations to understand why each choice matters.`;
+  } else {
+    gfb.className = 'feedback-box';
+    gfb.innerHTML = '';
+  }
+}
+
+function revealAll() {
+  const correctMap = {
+    a: { processor:'1.3 GHz Intel Core i5', ram:'8 GB DDR4', ramexp:'Non-expandable (lower cost)', storage:'2.5-inch HDD', storagesize:'1 TB', graphics:'Intel Iris XE integrated', vram:'Shared (integrated)', sound:'5.1-channel integrated', network:'Wireless AC', ports:'HDMI only', touch:'Standard display (no touch)', os:'Windows 11 Home' },
+    b: { processor:'AMD Ryzen 7', ram:'16 GB DDR4', ramexp:'Expandable to 32 GB', storage:'M.2 NVMe', storagesize:'512 GB', graphics:'AMD Radeon (dedicated)', vram:'2 GB Dedicated', sound:'7.1-channel integrated', network:'Wireless AX (Wi-Fi 6)', ports:'HDMI + 2x Thunderbolt', touch:'Touchscreen display', os:'Windows 11 Pro' }
+  };
+
+  ['a','b'].forEach(laptop => {
+    components.forEach(comp => {
+      const sel = document.querySelector(`#${laptop}-${comp} select`);
+      if (!sel) return;
+      for (let opt of sel.options) {
+        if (opt.value === 'correct' || opt.value === 'correct2') {
+          sel.value = opt.value;
+          handleChange(laptop, comp, opt.value);
+          break;
+        }
+      }
+    });
+  });
+}
+</script>
+</body>
+</html>

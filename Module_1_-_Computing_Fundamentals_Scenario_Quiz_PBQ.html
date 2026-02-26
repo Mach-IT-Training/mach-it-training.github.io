@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computing Fundamentals Scenario Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg-primary:#1a1d29; --bg-secondary:#242938; --bg-tertiary:#2d3348;
+            --accent-primary:#6366f1; --accent-secondary:#8b5cf6;
+            --accent-success:#10b981; --accent-warning:#f59e0b; --accent-error:#ef4444;
+            --text-primary:#f3f4f6; --text-secondary:#9ca3af; --border-color:#374151;
+        }
+        body { 
+            font-family:'Inter',sans-serif; background:var(--bg-primary); 
+            color:var(--text-primary); line-height:1.6; min-height:100vh;
+        }
+        .container { max-width:1000px; margin:0 auto; padding:20px; }
+
+        header {
+            text-align:center; padding:36px 20px;
+            background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));
+            border-radius:12px; margin-bottom:24px;
+        }
+        header h1 { font-size:2.3em; font-weight:700; margin-bottom:8px; }
+        .subtitle { font-size:1.05em; opacity:0.9; }
+
+        .progress-bar {
+            background:var(--bg-secondary); border-radius:10px; padding:16px 20px;
+            margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;
+        }
+        .progress-label { font-weight:600; color:var(--text-secondary); }
+        .progress-track {
+            flex:1; height:8px; background:var(--bg-tertiary); border-radius:4px;
+            margin:0 20px; overflow:hidden;
+        }
+        .progress-fill {
+            height:100%; background:linear-gradient(90deg,var(--accent-primary),var(--accent-secondary));
+            border-radius:4px; transition:width .3s ease;
+        }
+
+        .quiz-container { background:var(--bg-secondary); border-radius:12px; padding:28px; margin-bottom:24px; }
+        
+        .scenario-header {
+            display:flex; align-items:center; gap:12px; margin-bottom:20px;
+            padding-bottom:16px; border-bottom:2px solid var(--border-color);
+        }
+        .scenario-number {
+            background:var(--accent-primary); color:#fff; font-weight:700;
+            padding:6px 14px; border-radius:20px; font-size:0.9em;
+        }
+        .scenario-topic {
+            color:var(--accent-warning); font-weight:600; font-size:0.95em;
+        }
+
+        .scenario-text {
+            background:var(--bg-tertiary); padding:20px; border-radius:8px;
+            border-left:4px solid var(--accent-warning); margin-bottom:24px;
+            font-size:1.05em; line-height:1.7;
+        }
+
+        .question-text {
+            font-size:1.1em; font-weight:600; color:var(--text-primary);
+            margin-bottom:20px;
+        }
+
+        .answers-grid {
+            display:grid; gap:12px; margin-bottom:20px;
+        }
+        .answer-option {
+            background:var(--bg-tertiary); border:2px solid var(--border-color);
+            padding:16px 20px; border-radius:8px; cursor:pointer;
+            transition:all .2s; position:relative;
+        }
+        .answer-option:hover:not(.disabled) {
+            border-color:var(--accent-primary);
+            transform:translateX(4px);
+        }
+        .answer-option.selected {
+            border-color:var(--accent-primary);
+            background:rgba(99,102,241,.15);
+        }
+        .answer-option.correct {
+            border-color:var(--accent-success);
+            background:rgba(16,185,129,.15);
+        }
+        .answer-option.incorrect {
+            border-color:var(--accent-error);
+            background:rgba(239,68,68,.15);
+        }
+        .answer-option.disabled {
+            cursor:not-allowed;
+            opacity:0.7;
+        }
+
+        .feedback-box {
+            background:var(--bg-primary); border-radius:8px; padding:20px;
+            margin-top:20px; border-left:4px solid var(--accent-success);
+            display:none; animation:slideIn .3s ease;
+        }
+        .feedback-box.show { display:block; }
+        .feedback-box.incorrect-feedback { border-left-color:var(--accent-error); }
+        
+        .feedback-header {
+            display:flex; align-items:center; gap:10px;
+            font-size:1.2em; font-weight:700; margin-bottom:12px;
+        }
+        .feedback-icon { font-size:1.4em; }
+        
+        .feedback-explanation {
+            color:var(--text-secondary); line-height:1.7;
+            margin-top:12px;
+        }
+        .feedback-explanation strong {
+            color:var(--text-primary);
+            display:block;
+            margin-top:10px;
+        }
+
+        .controls {
+            display:flex; justify-content:space-between; align-items:center;
+            margin-top:24px; padding-top:20px; border-top:1px solid var(--border-color);
+        }
+        
+        button {
+            background:var(--accent-primary); color:#fff; border:none;
+            padding:12px 24px; border-radius:8px; font-weight:600;
+            cursor:pointer; transition:all .2s; font-family:'Inter',sans-serif;
+            font-size:0.95em;
+        }
+        button:hover:not(:disabled) {
+            background:var(--accent-secondary);
+            transform:translateY(-2px);
+        }
+        button:disabled {
+            opacity:0.4;
+            cursor:not-allowed;
+            transform:none;
+        }
+        button.secondary {
+            background:var(--bg-tertiary);
+            border:2px solid var(--border-color);
+        }
+        button.secondary:hover:not(:disabled) {
+            background:var(--bg-primary);
+            border-color:var(--accent-primary);
+        }
+        button.reset {
+            background:var(--accent-warning);
+        }
+        button.reset:hover {
+            background:#d97706;
+        }
+
+        .results-screen {
+            background:var(--bg-secondary); border-radius:12px;
+            padding:40px; text-align:center; display:none;
+        }
+        .results-screen.show { display:block; animation:fadeIn .5s ease; }
+        
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        @keyframes slideIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+        
+        .results-icon {
+            font-size:5em; margin-bottom:16px;
+            animation:popIn .4s ease;
+        }
+        @keyframes popIn {
+            0%{transform:scale(0)}
+            60%{transform:scale(1.2)}
+            100%{transform:scale(1)}
+        }
+        
+        .results-title {
+            font-size:2.4em; font-weight:700; margin-bottom:8px;
+            background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        
+        .results-score {
+            font-size:3em; font-weight:700;
+            color:var(--accent-success);
+            margin:24px 0;
+        }
+        
+        .results-details {
+            display:grid; grid-template-columns:repeat(3,1fr);
+            gap:20px; margin:32px 0;
+        }
+        .result-card {
+            background:var(--bg-tertiary); padding:20px;
+            border-radius:8px; border:2px solid var(--border-color);
+        }
+        .result-card-value {
+            font-size:2em; font-weight:700;
+            color:var(--accent-primary);
+        }
+        .result-card-label {
+            color:var(--text-secondary);
+            font-size:0.9em; margin-top:4px;
+        }
+        
+        .results-message {
+            background:var(--bg-tertiary);
+            padding:20px; border-radius:8px;
+            margin:24px 0; font-size:1.1em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>💻 Computing Fundamentals Scenario Quiz</h1>
+        <p class="subtitle">24 Real-World IT Support Scenarios - Test Your Knowledge</p>
+    </header>
+
+    <div class="progress-bar">
+        <span class="progress-label">Question <span id="progressNum">1</span> of <span id="progressTotal">24</span></span>
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="progress-label"><span id="scoreCount">0</span> Correct</span>
+    </div>
+
+    <div class="quiz-container" id="quizContainer">
+        <!-- Quiz content loaded by JavaScript -->
+    </div>
+
+    <div class="controls">
+        <button class="secondary" id="prevBtn" onclick="previousQuestion()" disabled>← Previous</button>
+        <button class="reset" onclick="restartQuiz()">🔄 Restart & Reshuffle</button>
+        <button id="nextBtn" onclick="nextQuestion()" disabled>Next →</button>
+    </div>
+
+    <div class="results-screen" id="resultsScreen">
+        <div class="results-icon">🎉</div>
+        <h2 class="results-title">Quiz Complete!</h2>
+        <div class="results-score" id="finalScore">0/24</div>
+        
+        <div class="results-details">
+            <div class="result-card">
+                <div class="result-card-value" id="correctCount">0</div>
+                <div class="result-card-label">Correct Answers</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="incorrectCount">0</div>
+                <div class="result-card-label">Incorrect Answers</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="percentScore">0%</div>
+                <div class="result-card-label">Score Percentage</div>
+            </div>
+        </div>
+        
+        <div class="results-message" id="resultsMessage"></div>
+        
+        <button class="reset" onclick="restartQuiz()" style="font-size:1.1em; padding:14px 32px;">
+            🔄 Take Quiz Again
+        </button>
+    </div>
+</div>
+
+<script>
+// Question bank - 24 scenarios covering all Computing Fundamentals topics
+const QUESTION_BANK = [
+    {
+        topic: "Computing Functions",
+        scenario: "A small business owner wants to purchase equipment for their new office. They need to scan physical documents and convert them to digital files for storage in the cloud.",
+        question: "Which type of device is needed to accomplish this task?",
+        answers: [
+            { text: "An input device to capture documents", correct: true },
+            { text: "A storage device to save the documents", correct: false },
+            { text: "An output device to display the documents", correct: false },
+            { text: "A processing device to convert the files", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Input device (scanner)</strong><br><br><strong>Explanation:</strong> A scanner is an INPUT device that captures physical documents and converts them into digital data that enters the computer system. While storage will be needed eventually (cloud storage), the question asks which device is needed to 'scan and convert' - that's the scanner's primary function. The scanner converts physical documents into digital signals (input), then processing occurs, and finally the data is stored in the cloud."
+    },
+    {
+        topic: "Data Units",
+        scenario: "An IT manager needs to back up 8,500 GB of company data. They're considering purchasing either a 10 TB external drive or multiple smaller drives.",
+        question: "Will the 10 TB drive have enough capacity for all the data?",
+        answers: [
+            { text: "No — 8,500 GB exceeds 10 TB", correct: false },
+            { text: "Yes — the 10 TB drive has enough capacity", correct: true },
+            { text: "Yes — but only if the data is compressed first", correct: false },
+            { text: "No — a 10 TB drive can only hold 1,000 GB", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Yes, 8,500 GB equals 8.5 TB</strong><br><br><strong>Explanation:</strong> To convert GB to TB, divide by 1,000: 8,500 GB ÷ 1,000 = 8.5 TB. Since 8.5 TB < 10 TB, the drive has sufficient capacity with 1.5 TB (1,500 GB) to spare. Remember: 1 TB = 1,000 GB in decimal notation (which manufacturers use). The 10 TB drive is the right choice and provides headroom for future growth."
+    },
+    {
+        topic: "Data Units - Network Speed",
+        scenario: "A company has a 500 Mbps internet connection. An employee needs to download a 2 GB software update.",
+        question: "Approximately how long will the download take?",
+        answers: [
+            { text: "About 4 seconds", correct: false },
+            { text: "About 32 seconds", correct: true },
+            { text: "About 4 minutes", correct: false },
+            { text: "About 500 seconds", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: About 32 seconds</strong><br><br><strong>Explanation:</strong> First, convert Mbps to MB/s by dividing by 8 (8 bits = 1 byte): 500 Mbps ÷ 8 = 62.5 MB/s download speed. Then divide file size by speed: 2,000 MB ÷ 62.5 MB/s = 32 seconds. This is a critical concept: network speeds are measured in bits (Mbps), while file sizes use bytes (MB/GB). Always divide Mbps by 8 to get MB/s before calculating transfer time."
+    },
+    {
+        topic: "Processing Speed",
+        scenario: "A purchasing department is comparing four laptop processors: Option A is 2.6 GHz, Option B is 3400 MHz, Option C is 3.2 GHz, and Option D is 3.35 GHz.",
+        question: "Which processor has the highest clock speed? (1 GHz = 1,000 MHz)",
+        answers: [
+            { text: "Option A — 2.6 GHz", correct: false },
+            { text: "Option B — 3400 MHz", correct: true },
+            { text: "Option C — 3.2 GHz", correct: false },
+            { text: "Option D — 3.35 GHz", correct: false }
+        ],
+        explanation: "Option B is correct. Converting all speeds to GHz: Option A = 2.6 GHz, Option B = 3400 MHz ÷ 1,000 = 3.4 GHz, Option C = 3.2 GHz, Option D = 3.35 GHz. Ranked: 3.4 > 3.35 > 3.2 > 2.6 GHz, making Option B the fastest. Remember: 1 GHz = 1,000 MHz. Always convert to the same unit before comparing."
+    },
+    {
+        topic: "RAM Troubleshooting",
+        scenario: "A user reports their computer randomly crashes with blue screen errors. Sometimes it won't boot and makes beeping sounds. The system was working fine last week.",
+        question: "Which component is MOST likely failing?",
+        answers: [
+            { text: "CPU", correct: false },
+            { text: "Hard Drive", correct: false },
+            { text: "Power Supply", correct: false },
+            { text: "RAM", correct: true }
+        ],
+        explanation: "<strong>Correct Answer: RAM (Memory modules)</strong><br><br><strong>Explanation:</strong> The symptom pattern points directly to RAM failure: (1) Blue screens indicate memory errors causing system crashes, (2) Random crashes suggest unstable RAM that can't reliably hold data, (3) Boot failures with beeps indicate POST beep codes, which often signal RAM detection issues. A failing CPU typically prevents boot entirely, hard drives cause slow performance and file corruption (not sudden crashes), and power supply issues cause complete shutdowns/reboots, not freezes. Troubleshooting steps: run MemTest86, reseat RAM, test one stick at a time."
+    },
+    {
+        topic: "BIOS Configuration",
+        scenario: "A technician needs to install a new operating system from a USB flash drive on a computer that currently has a corrupt OS on the hard drive.",
+        question: "What should be the first boot device in the BIOS?",
+        answers: [
+            { text: "CD/DVD Drive", correct: false },
+            { text: "Hard Disk Drive", correct: false },
+            { text: "Network Boot (PXE)", correct: false },
+            { text: "USB Storage Device", correct: true }
+        ],
+        explanation: "<strong>Correct Answer: USB Storage Device</strong><br><br><strong>Explanation:</strong> To install an OS from USB, the BIOS boot order must list USB first. The boot sequence works like this: (1) BIOS runs POST, (2) BIOS checks boot order list, (3) Tries to boot from 1st device (USB installer), (4) If USB removed, tries 2nd device (HDD with new OS). Setting HDD first would attempt to boot the corrupt OS instead of the installer. After installation, remove the USB and the system will boot from the HDD normally. Pro tip: Most systems have a boot menu key (F12/F8/ESC) for temporary boot device selection."
+    },
+    {
+        topic: "Storage Technology - HDD",
+        scenario: "A video production company needs to archive 50 TB of completed project files that will rarely be accessed. Budget is limited.",
+        question: "What is the MOST cost-effective storage solution?",
+        answers: [
+            { text: "50 TB of NVMe SSD storage", correct: false },
+            { text: "50 TB of traditional HDD storage", correct: true },
+            { text: "50 TB of SATA SSD storage", correct: false },
+            { text: "Cloud storage subscription", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: 50 TB of traditional HDD storage</strong><br><br><strong>Explanation:</strong> For rarely-accessed archive storage, HDDs are the clear choice. Cost comparison: HDDs cost $0.02-0.03 per GB ($1,000-1,500 for 50TB), while SSDs cost $0.08-0.15 per GB ($4,000-7,500 for 50TB) - that's 4-5× more expensive! Since the files are accessed rarely, the slow speed of HDDs (100-200 MB/s) doesn't matter. The key decision: match storage technology to access pattern. Use SSDs for frequently-accessed data (OS, active projects), HDDs for archives and backups where capacity and cost matter more than speed."
+    },
+    {
+        topic: "Storage Technology - SSD",
+        scenario: "A graphic designer complains their workstation is slow when opening large Photoshop files and switching between applications. The computer has a traditional HDD.",
+        question: "What upgrade would provide the MOST performance improvement?",
+        answers: [
+            { text: "Add more RAM", correct: false },
+            { text: "Upgrade to a faster CPU", correct: false },
+            { text: "Install an SSD", correct: true },
+            { text: "Add a dedicated graphics card", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Install an SSD for the operating system and applications</strong><br><br><strong>Explanation:</strong> The symptoms (slow file opening, slow application switching) indicate storage bottleneck, not RAM or CPU issues. Upgrading from HDD to SSD provides dramatic performance gains: (1) Boot time: 45 seconds → 10 seconds, (2) Application launch: 3-5× faster, (3) File access: 500-7000 MB/s vs 100-200 MB/s (5-35× faster). SSDs use flash memory with no moving parts, enabling near-instant random access. While RAM and GPU can help, the HDD is clearly the bottleneck here. Best practice: SSD for OS + programs, keep HDD for storage if needed."
+    },
+    {
+        topic: "GPU Requirements - Office Work",
+        scenario: "An accountant needs a new computer for Excel spreadsheets, QuickBooks, email, and web-based research. They work with data analysis but no graphics design.",
+        question: "Does this user need a dedicated graphics card?",
+        answers: [
+            { text: "Yes, for running multiple Excel spreadsheets", correct: false },
+            { text: "Yes, for better web browsing performance", correct: false },
+            { text: "No, integrated graphics are sufficient for this work", correct: true },
+            { text: "Yes, for QuickBooks rendering", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: No, integrated graphics are sufficient</strong><br><br><strong>Explanation:</strong> Office work (spreadsheets, accounting software, email, web browsing) is CPU-bound, not GPU-intensive. Integrated graphics (built into the CPU, sharing system RAM) handle these tasks perfectly well. Dedicated GPUs are needed for: 3D rendering (CAD, Blender), video editing (4K+, effects), game development, and machine learning. Excel spreadsheets use CPU for calculations, not GPU. This accountant would be wasting $300-1,500 on a dedicated GPU that provides zero benefit. Save the money or invest it in more RAM or faster CPU instead."
+    },
+    {
+        topic: "GPU Requirements - 3D Work",
+        scenario: "An architect uses AutoCAD daily to create complex 3D building models with real-time rendering and walkthroughs. Their current computer has only integrated graphics.",
+        question: "What upgrade is MOST critical for their workflow?",
+        answers: [
+            { text: "Faster internet connection", correct: false },
+            { text: "More storage space", correct: false },
+            { text: "Dedicated graphics card with VRAM", correct: true },
+            { text: "Mechanical keyboard", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Dedicated graphics card with VRAM</strong><br><br><strong>Explanation:</strong> 3D CAD work (AutoCAD, Revit, SolidWorks) absolutely requires a dedicated GPU for: (1) Real-time viewport manipulation - rotating complex 3D models smoothly, (2) Rendering engines that leverage GPU parallel processing (thousands of cores), (3) Ray tracing and lighting calculations. Integrated graphics can't handle this workload and will cause lag, crashes, and frustration. Professional GPUs (NVIDIA RTX A-series, AMD Radeon Pro) have dedicated VRAM (8-24GB) to store geometry and textures. This is non-negotiable for professional 3D work - it's the difference between 5 FPS (unusable) and 60+ FPS (smooth workflow)."
+    },
+    {
+        topic: "Optical Media Selection",
+        scenario: "An IT department needs to distribute a 7.8 GB training video to 100 employees on physical media. Each employee gets their own copy.",
+        question: "What is the MOST cost-effective optical media format?",
+        answers: [
+            { text: "DVD-R SL", correct: false },
+            { text: "CD-R", correct: false },
+            { text: "Blu-ray Disc", correct: false },
+            { text: "DVD-R DL", correct: true }
+        ],
+        explanation: "<strong>Correct Answer: DVD-R Dual Layer ($0.75 each)</strong><br><br><strong>Explanation:</strong> Capacity analysis: CD-R (700 MB) is too small, DVD-R Single Layer (4.7 GB) is too small, DVD-R Dual Layer (8.5 GB) fits the 7.8 GB file, Blu-ray (25 GB) fits but is expensive overkill. Cost comparison for 100 copies: DVD-R DL = $75, Blu-ray = $250. Choosing DVD-R DL saves $175 (70% less expensive)! The dual-layer DVD uses two data layers on one disc, readable by a blue-laser focusing at different depths. Decision framework: Always choose the smallest format that fits your data to minimize cost and waste."
+    },
+    {
+        topic: "Expansion Cards - Audio",
+        scenario: "A music producer records podcasts and needs professional audio quality with less than 5ms latency. The motherboard's built-in audio has noticeable delay.",
+        question: "What expansion card would solve this problem?",
+        answers: [
+            { text: "Graphics card for better audio visualization", correct: false },
+            { text: "Network card for faster upload speeds", correct: false },
+            { text: "Professional sound card with ASIO drivers", correct: true },
+            { text: "USB expansion card for more ports", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Professional sound card with ASIO drivers</strong><br><br><strong>Explanation:</strong> Professional audio production requires dedicated sound cards because: (1) Low latency recording (< 5-10ms) - onboard audio has 20-50ms delay, (2) Better DACs (Digital-to-Analog Converters) for clearer sound, (3) Higher signal-to-noise ratio, (4) ASIO drivers for professional software (Pro Tools, Ableton). Onboard audio is fine for casual listening, but professional recording needs professional hardware. The sound card offloads audio processing from the CPU and provides studio-grade quality. Typical investment: $100-500 for prosumer cards, worth it for anyone doing serious audio work."
+    },
+    {
+        topic: "Expansion Cards - Network",
+        scenario: "An old desktop computer has a built-in 100 Mbps (Fast Ethernet) network port. File transfers from the company server are slow compared to newer computers.",
+        question: "What upgrade would provide faster network performance?",
+        answers: [
+            { text: "Install a GB NIC", correct: true },
+            { text: "Upgrade the power supply", correct: false },
+            { text: "Add more RAM", correct: false },
+            { text: "Replace the CPU", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Install a Gigabit Network Interface Card</strong><br><br><strong>Explanation:</strong> The bottleneck is the 100 Mbps network port, which is 10× slower than Gigabit (1,000 Mbps). A Gigabit PCIe NIC costs $15-30 and instantly upgrades network speed from 12.5 MB/s to 125 MB/s - making file transfers 10× faster. This is exactly what expansion cards are for: adding capabilities or upgrading components without replacing the entire computer. RAM and CPU don't affect network transfer speed; the network interface is the limiting factor. This is a perfect example of targeted upgrading: identify the bottleneck, add the specific card needed."
+    },
+    {
+        topic: "PSU Wattage - Basic System",
+        scenario: "A technician is building a basic office PC: Intel i5 CPU (65W), no dedicated GPU, 16GB RAM, one SSD, and two case fans.",
+        question: "What is the MINIMUM appropriate PSU wattage?",
+        answers: [
+            { text: "300W PSU", correct: false },
+            { text: "450W PSU", correct: true },
+            { text: "750W PSU", correct: false },
+            { text: "1000W PSU", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: 450W PSU</strong><br><br><strong>Explanation:</strong> Component power draw: CPU (65W) + RAM (16GB = ~8W) + SSD (5W) + Fans (2 × 3W = 6W) = ~84W total. Add 20% overhead for efficiency and aging: 84W × 1.20 = ~101W. While 101W is the minimum, PSUs run most efficiently at 50-80% load. A 450W PSU puts this system at ~22% load - safe, efficient, and provides massive headroom for upgrades. 300W is too close to minimum (no safety margin), while 750W-1000W is expensive overkill for a basic system. Rule of thumb: Calculate actual power, add 20%, then choose the next standard PSU size up."
+    },
+    {
+        topic: "PSU Wattage - Gaming System",
+        scenario: "A gamer is building a PC with: Intel i9 CPU (125W), RTX 4080 GPU (320W), 32GB RAM, two NVMe SSDs, and six RGB fans.",
+        question: "What PSU wattage provides appropriate headroom?",
+        answers: [
+            { text: "550W PSU", correct: false },
+            { text: "650W PSU", correct: false },
+            { text: "850W PSU", correct: true },
+            { text: "450W PSU", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: 850W PSU</strong><br><br><strong>Explanation:</strong> Component power: CPU (125W) + GPU (320W) + RAM (32GB = 16W) + SSDs (2 × 5W = 10W) + Fans (6 × 3W = 18W) = 489W. Add 20% overhead: 489W × 1.20 = 587W minimum. Why 850W? (1) GPU power spikes can exceed 320W TDP, (2) Leaves room for future GPU upgrades, (3) PSUs run most efficiently at 50-80% load (587W on 850W = 69% - perfect), (4) High-end components deserve quality PSU with headroom. 550W/650W are too close to limit and won't handle power spikes. 450W would cause shutdowns. This is why wattage calculators are important for gaming builds!"
+    },
+    {
+        topic: "PSU Efficiency - 80 Plus Ratings",
+        scenario: "A company is purchasing 50 desktop computers. Option A has an 80 Plus Bronze PSU, Option B has an 80 Plus Gold PSU for $30 more per computer.",
+        question: "What is the MAIN benefit of choosing the Gold-rated PSU?",
+        answers: [
+            { text: "Gold PSU provides 30% more wattage", correct: false },
+            { text: "Gold PSU has longer warranty coverage", correct: false },
+            { text: "Gold PSU wastes less electricity as heat", correct: true },
+            { text: "Gold PSU allows overclocking", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Gold PSU is 5-7% more efficient</strong><br><br><strong>Explanation:</strong> 80 Plus ratings measure efficiency at 50% load: Bronze = 82-85% efficient, Gold = 87-90% efficient. Higher efficiency means: (1) Less wasted electricity (saves $20-40/year per PC), (2) Less heat generation (quieter fans, longer component life), (3) Lower cooling costs. For 50 computers over 5 years, the $1,500 upfront cost ($30 × 50) could save $5,000-10,000 in electricity. The wattage is the same (e.g., both are 650W), but Gold converts AC to DC more efficiently. This matters for: large deployments, 24/7 operation, environmentally-conscious organizations. Single home PC? Bronze is fine. Data center? Gold/Platinum pays for itself."
+    },
+    {
+        topic: "Cooling - CPU Temperature",
+        scenario: "A computer's CPU temperature reaches 95°C under load and the system throttles performance to prevent damage. It previously ran at 65°C.",
+        question: "What is the MOST likely cause?",
+        answers: [
+            { text: "The power supply is failing", correct: false },
+            { text: "CPU fan is clogged with dust", correct: true },
+            { text: "The RAM needs to be replaced", correct: false },
+            { text: "The hard drive is full", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Thermal paste dried out or cooler clogged with dust</strong><br><br><strong>Explanation:</strong> Normal CPU temperatures: Idle = 30-45°C, Load = 60-80°C, Thermal Throttling = 90-100°C. The jump from 65°C to 95°C indicates cooling failure, not component failure. Common causes: (1) Dried thermal paste (loses conductivity after 2-4 years), (2) Dust buildup blocking heatsink fins or fan, (3) Fan failure or running too slow. The CPU automatically throttles (reduces clock speed) at ~95-100°C to prevent permanent damage. Solutions: Clean cooler, replace thermal paste, verify fan operation. This is preventive maintenance - thermal throttling means the cooling system needs attention NOW before CPU damage occurs."
+    },
+    {
+        topic: "Cooling - Case Airflow",
+        scenario: "A gaming PC has good components but runs hot. It has one rear exhaust fan. The case has empty fan mounts on the front.",
+        question: "What cooling improvement should be made?",
+        answers: [
+            { text: "Remove the rear fan to reduce noise", correct: false },
+            { text: "Install front intake fans", correct: true },
+            { text: "Close all case vents to prevent dust", correct: false },
+            { text: "Install only more exhaust fans", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Install front intake fans</strong><br><br><strong>Explanation:</strong> Proper case airflow follows a principle: Front intake → Through components → Rear/top exhaust. Currently, the PC has only exhaust, creating negative pressure (pulling air through unfiltered gaps, increasing dust). Adding front intake fans creates: (1) Positive pressure (clean filtered air in, dust stays out), (2) Direct cool airflow over GPU and drives, (3) Balanced intake/exhaust ratio (usually 2-3 front intake, 1-2 rear/top exhaust). Typical setup: 120mm/140mm fans front (intake) + rear (exhaust) + optional top (exhaust). This creates a \"wind tunnel\" effect, dramatically improving temperatures. Without intake fans, hot air isn't being replaced with cool air efficiently."
+    },
+    {
+        topic: "Motherboard Components",
+        scenario: "A technician notices a laptop won't turn on at all - no lights, no sounds, no response to power button. The charger and battery are confirmed working.",
+        question: "Which component has MOST likely failed?",
+        answers: [
+            { text: "RAM modules", correct: false },
+            { text: "Hard drive", correct: false },
+            { text: "Motherboard", correct: true },
+            { text: "Display screen", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Motherboard</strong><br><br><strong>Explanation:</strong> Complete failure to power on (no lights, no POST beeps, no response) indicates motherboard failure because: (1) The motherboard distributes power to all components, (2) It controls the power button circuit, (3) Failed RAM/HDD/screen would still show SOME response (fans spinning, lights, beeps). The motherboard is the \"nervous system\" - when it fails completely, nothing works. Troubleshooting steps confirmed: Power supply works (charger + battery OK), so the issue is on the board itself. This is typically not economical to repair on laptops (motherboard replacement = 70-90% of laptop cost). Failed RAM would cause beep codes, failed HDD would still show BIOS, failed screen would still have sounds/lights."
+    },
+    {
+        topic: "Motherboard - PCIe Slots",
+        scenario: "A user wants to install a graphics card that requires a PCIe x16 slot, but their motherboard only has one x16 slot which is occupied by a sound card.",
+        question: "What is the BEST solution?",
+        answers: [
+            { text: "Install the graphics card in a PCIe x1 slot", correct: false },
+            { text: "Remove the sound card and use onboard audio instead", correct: true },
+            { text: "Purchase a new motherboard", correct: false },
+            { text: "Use a USB graphics adapter", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Remove the sound card and use onboard audio</strong><br><br><strong>Explanation:</strong> PCIe slot hierarchy: x16 (graphics cards, ~32 GB/s) > x4 (capture cards, ~16 GB/s) > x1 (sound cards, NICs, ~4 GB/s). A graphics card REQUIRES an x16 slot for proper performance and won't physically fit in x1 slots. Sound cards typically use x1 slots, so if one is in the x16 slot, it's wasting bandwidth. Solution: Move sound card to x1 slot if available, or use onboard audio (which is perfectly adequate for non-professionals). Most motherboards have: 1-2 x16 slots (for GPU/multi-GPU), 2-4 x1 slots (expansion cards). Priority: Give the x16 slot to the component that needs it most - always the graphics card for gaming/3D work."
+    },
+    {
+        topic: "Input Devices",
+        scenario: "A warehouse manager is documenting the computer systems used at receiving stations. A barcode scanner connects via USB and inputs product codes into the inventory system when triggered. The manager needs to classify each device by its role in the IPOS model.",
+        question: "In the IPOS model, which role does the barcode scanner fill?",
+        answers: [
+            { text: "Input — it captures data from the environment and sends it to the CPU", correct: true },
+            { text: "Output — it produces a result the user can see or use", correct: false },
+            { text: "Processing — it calculates and transforms data", correct: false },
+            { text: "Storage — it retains data for later retrieval", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Input device</strong><br><br><strong>Explanation:</strong> A barcode scanner is an INPUT device because it: (1) Captures data from the external world (barcode), (2) Converts physical information (printed bars) into digital signals, (3) Sends data INTO the computer system. The IPOS model: INPUT (scanner captures barcode) → PROCESSING (computer looks up product) → OUTPUT (screen displays info) → STORAGE (database updated). Common input devices: keyboard, mouse, scanner, microphone, webcam, touchscreen, sensors. They all share one characteristic: bringing data from outside into the computer. Without input devices, computers would have no data to process!"
+    },
+    {
+        topic: "Output Devices",
+        scenario: "A graphic designer sends a poster design to a large-format color printer that creates a physical 24x36 inch print. The manager is documenting each device's role in the IPOS model.",
+        question: "In the IPOS model, which role does the printer fill?",
+        answers: [
+            { text: "Input — it sends data to the computer for processing", correct: false },
+            { text: "Processing — it transforms digital data into a new format", correct: false },
+            { text: "Output — it presents processed results to the user", correct: true },
+            { text: "Storage — it retains the document for later access", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: Output - it displays the result</strong><br><br><strong>Explanation:</strong> The printer is an OUTPUT device because it takes processed digital data FROM the computer and converts it into physical form FOR the user. Don't confuse data flow with function: yes, data goes INTO the printer, but that doesn't make it an input device. Classification depends on the system boundary: INPUT brings data into the computer, OUTPUT takes results out to the user. Other output devices: monitor (visual), speakers (audio), projector (visual), 3D printer (physical object). They all share one purpose: presenting processed information to humans or external systems. The printer receives, but its PURPOSE is output."
+    },
+    {
+        topic: "BIOS - POST",
+        scenario: "During startup, a computer displays 'Keyboard Error' and halts before loading the operating system. Pressing any key has no effect.",
+        question: "At what stage is the computer detecting this error?",
+        answers: [
+            { text: "Operating system loading", correct: false },
+            { text: "BIOS POST", correct: true },
+            { text: "Application startup", correct: false },
+            { text: "Network boot", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: BIOS POST (Power-On Self-Test)</strong><br><br><strong>Explanation:</strong> Boot sequence: (1) Power on → (2) BIOS loads → (3) POST runs (tests CPU, RAM, keyboard, drives) → (4) BIOS finds boot device → (5) OS loads. The error occurs at step 3 (POST) because: (1) OS hasn't loaded yet (we see BIOS error, not Windows), (2) POST tests all connected hardware before allowing boot, (3) Critical device failure (keyboard) halts the process. POST errors appear as: text messages, beep codes, or both. If POST passes, BIOS hands control to bootloader. If POST fails, system halts to prevent damage. Solution: reconnect keyboard, try different USB port, test known-good keyboard. This is why POST exists - catch hardware problems before OS attempts to use broken hardware."
+    },
+    {
+        topic: "File Systems",
+        scenario: "A technician needs to format a USB drive to transfer a single 6 GB video file between a Windows PC and a Mac. The drive is currently FAT32.",
+        question: "What file system should be used?",
+        answers: [
+            { text: "exFAT", correct: true },
+            { text: "APFS", correct: false },
+            { text: "NTFS", correct: false },
+            { text: "Keep FAT32", correct: false }
+        ],
+        explanation: "<strong>Correct Answer: exFAT</strong><br><br><strong>Explanation:</strong> File system limitations: FAT32 has 4 GB max file size (the 6 GB video won't fit!), NTFS is read-only on Mac by default, APFS isn't natively supported on Windows. exFAT (Extended FAT) was designed specifically for this scenario: (1) No file size limit (supports files > 4 GB), (2) Native read/write support on Windows, Mac, and Linux, (3) Optimized for flash drives. This is the perfect cross-platform solution for large files. Decision framework: FAT32 = small files/old devices, NTFS = Windows-only, exFAT = cross-platform with large files, APFS/HFS+ = Mac-only. Always match file system to use case!"
+    }
+];
+
+let currentQuestionIndex = 0;
+let score = 0;
+let questions = [];
+let userAnswers = [];
+
+// Fisher-Yates shuffle algorithm
+function shuffleArray(array) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}
+
+function initializeQuiz() {
+    // Shuffle questions
+    questions = shuffleArray(QUESTION_BANK);
+    
+    // Shuffle answers for each question
+    questions = questions.map(q => ({
+        ...q,
+        answers: shuffleArray(q.answers)
+    }));
+    
+    currentQuestionIndex = 0;
+    score = 0;
+    userAnswers = new Array(questions.length).fill(null);
+    
+    document.getElementById('progressTotal').textContent = questions.length;
+    updateProgress();
+    renderQuestion();
+    
+    document.getElementById('quizContainer').style.display = 'block';
+    document.getElementById('resultsScreen').classList.remove('show');
+}
+
+function renderQuestion() {
+    const question = questions[currentQuestionIndex];
+    const container = document.getElementById('quizContainer');
+    
+    const answersHTML = question.answers.map((answer, index) => {
+        const isSelected = userAnswers[currentQuestionIndex] === index;
+        const isDisabled = userAnswers[currentQuestionIndex] !== null;
+        const isCorrect = answer.correct && isDisabled;
+        const isIncorrect = isSelected && !answer.correct && isDisabled;
+        
+        let classes = 'answer-option';
+        if (isSelected) classes += ' selected';
+        if (isDisabled) classes += ' disabled';
+        if (isCorrect) classes += ' correct';
+        if (isIncorrect) classes += ' incorrect';
+        
+        return `<div class="${classes}" onclick="selectAnswer(${index})">${answer.text}</div>`;
+    }).join('');
+    
+    const feedbackClass = userAnswers[currentQuestionIndex] !== null 
+        ? (questions[currentQuestionIndex].answers[userAnswers[currentQuestionIndex]].correct ? '' : 'incorrect-feedback')
+        : '';
+    
+    const feedbackIcon = userAnswers[currentQuestionIndex] !== null
+        ? (questions[currentQuestionIndex].answers[userAnswers[currentQuestionIndex]].correct ? '✅' : '❌')
+        : '';
+    
+    const showFeedback = userAnswers[currentQuestionIndex] !== null;
+    
+    container.innerHTML = `
+        
+        <div class="scenario-text">${question.scenario}</div>
+        
+        <div class="question-text">${question.question}</div>
+        
+        <div class="answers-grid">${answersHTML}</div>
+        
+        <div class="feedback-box ${feedbackClass} ${showFeedback ? 'show' : ''}" id="feedback">
+            <div class="feedback-header">
+                <span class="feedback-icon">${feedbackIcon}</span>
+                <span>${questions[currentQuestionIndex].answers[userAnswers[currentQuestionIndex]]?.correct ? 'Correct!' : 'Incorrect'}</span>
+            </div>
+            <div class="feedback-explanation">${question.explanation}</div>
+        </div>
+    `;
+    
+    updateNavigationButtons();
+    updateProgress();
+}
+
+function selectAnswer(answerIndex) {
+    if (userAnswers[currentQuestionIndex] !== null) return; // Already answered
+    
+    userAnswers[currentQuestionIndex] = answerIndex;
+    
+    if (questions[currentQuestionIndex].answers[answerIndex].correct) {
+        score++;
+        document.getElementById('scoreCount').textContent = score;
+    }
+    
+    renderQuestion();
+}
+
+function nextQuestion() {
+    if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+    } else {
+        showResults();
+    }
+}
+
+function previousQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion();
+    }
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    prevBtn.disabled = currentQuestionIndex === 0;
+    nextBtn.disabled = userAnswers[currentQuestionIndex] === null;
+    
+    if (currentQuestionIndex === questions.length - 1 && userAnswers[currentQuestionIndex] !== null) {
+        nextBtn.textContent = 'View Results →';
+    } else {
+        nextBtn.textContent = 'Next →';
+    }
+}
+
+function updateProgress() {
+    document.getElementById('progressNum').textContent = currentQuestionIndex + 1;
+    const percentage = ((currentQuestionIndex + 1) / questions.length) * 100;
+    document.getElementById('progressFill').style.width = percentage + '%';
+}
+
+function showResults() {
+    const totalQuestions = questions.length;
+    const incorrectCount = totalQuestions - score;
+    const percentage = Math.round((score / totalQuestions) * 100);
+    
+    document.getElementById('quizContainer').style.display = 'none';
+    document.getElementById('resultsScreen').classList.add('show');
+    
+    document.getElementById('finalScore').textContent = `${score}/${totalQuestions}`;
+    document.getElementById('correctCount').textContent = score;
+    document.getElementById('incorrectCount').textContent = incorrectCount;
+    document.getElementById('percentScore').textContent = percentage + '%';
+    
+    let message = '';
+    let icon = '🎉';
+    
+    if (percentage >= 90) {
+        message = '🌟 Outstanding! You have mastered Computing Fundamentals. You\'re ready for the CompTIA Tech+ exam!';
+        icon = '🏆';
+    } else if (percentage >= 80) {
+        message = '👏 Excellent work! You have a strong understanding of the material. Review the missed questions and you\'ll be ready!';
+        icon = '🎉';
+    } else if (percentage >= 70) {
+        message = '👍 Good job! You\'re on the right track. Focus on the topics where you missed questions to strengthen your knowledge.';
+        icon = '📚';
+    } else if (percentage >= 60) {
+        message = '📖 You\'re making progress! Review the explanations for missed questions and try the quiz again to reinforce your learning.';
+        icon = '💪';
+    } else {
+        message = '🔄 Keep studying! Review the instructional materials and pay close attention to the detailed explanations. You\'ll improve with practice!';
+        icon = '📘';
+    }
+    
+    document.querySelector('.results-icon').textContent = icon;
+    document.getElementById('resultsMessage').textContent = message;
+}
+
+function restartQuiz() {
+    initializeQuiz();
+}
+
+// Initialize quiz on page load
+document.addEventListener('DOMContentLoaded', initializeQuiz);
+</script>
+</body>
+</html>

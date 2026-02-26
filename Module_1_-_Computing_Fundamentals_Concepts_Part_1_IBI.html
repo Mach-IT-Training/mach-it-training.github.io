@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computing Fundamentals Part 1 - CompTIA Tech+ FC0-U71</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg-primary:#1a1d29; --bg-secondary:#242938; --bg-tertiary:#2d3348;
+            --accent-primary:#6366f1; --accent-secondary:#8b5cf6;
+            --accent-success:#10b981; --accent-warning:#f59e0b; --accent-error:#ef4444;
+            --text-primary:#f3f4f6; --text-secondary:#9ca3af; --border-color:#374151;
+        }
+        body { font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); line-height:1.6; }
+        .container { max-width:1400px; margin:0 auto; padding:20px; }
+
+        header {
+            text-align:center; padding:40px 20px;
+            background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));
+            border-radius:12px; margin-bottom:30px;
+        }
+        header h1 { font-size:2.4em; font-weight:700; margin-bottom:8px; }
+        header .subtitle { font-size:1.15em; opacity:0.9; }
+
+        .lesson-container { display:grid; grid-template-columns:320px 1fr; gap:20px; }
+
+        /* Sidebar */
+        .sidebar { background:var(--bg-secondary); border-radius:12px; padding:22px; position:sticky; top:20px; height:fit-content; }
+        .sidebar h2 { color:var(--accent-primary); margin-bottom:16px; font-size:1.2em; }
+        .concept-nav { list-style:none; }
+        .concept-nav li {
+            padding:11px 14px; margin-bottom:7px; background:var(--bg-tertiary);
+            border-radius:8px; cursor:pointer; transition:all .25s; border-left:4px solid transparent;
+        }
+        .concept-nav li:hover { background:var(--bg-primary); border-left-color:var(--accent-primary); transform:translateX(4px); }
+        .concept-nav li.active { background:var(--accent-primary); border-left-color:var(--accent-secondary); }
+        .concept-nav li.completed::after { content:" ✓"; color:var(--accent-success); float:right; }
+        .progress-indicator { text-align:center; color:var(--text-secondary); margin-top:12px; font-size:.9em; }
+
+        /* Main */
+        .main-content { background:var(--bg-secondary); border-radius:12px; padding:30px; }
+        .lesson { display:none; }
+        .lesson.active { display:block; animation:fadeIn .4s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        .lesson h2 { color:var(--accent-primary); font-size:1.9em; margin-bottom:14px; }
+
+        .problem-scenario { background:var(--bg-tertiary); padding:18px; border-radius:8px; margin:18px 0; border-left:4px solid var(--accent-warning); }
+        .problem-scenario h3 { color:var(--accent-warning); margin-bottom:8px; }
+
+        .visual-demo { background:var(--bg-primary); padding:22px; border-radius:8px; margin:22px 0; border:2px solid var(--border-color); }
+        .visual-demo h3 { margin-bottom:12px; }
+
+        .key-concept { background:rgba(99,102,241,.1); padding:16px; border-radius:8px; margin:16px 0; border-left:4px solid var(--accent-primary); }
+        .key-concept strong { color:var(--accent-primary); }
+
+        .interactive-section { background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1)); padding:22px; border-radius:8px; margin:22px 0; border:2px solid var(--accent-primary); }
+        .interactive-section h3 { color:var(--accent-primary); margin-bottom:12px; }
+
+        /* Data cards row */
+        .data-structure { display:flex; gap:18px; margin:18px 0; flex-wrap:wrap; }
+        .data-card { background:var(--bg-tertiary); padding:16px; border-radius:8px; flex:1; min-width:200px; border:2px solid var(--border-color); transition:all .25s; }
+        .data-card:hover { border-color:var(--accent-primary); transform:translateY(-4px); }
+        .data-card h4 { color:var(--accent-secondary); margin-bottom:8px; }
+        .data-example { font-family:'JetBrains Mono',monospace; font-size:.88em; color:var(--text-secondary); margin-top:8px; white-space:pre; }
+
+        /* Choice grid */
+        .choice-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-top:14px; }
+        .choice-card { background:var(--bg-secondary); padding:18px; border-radius:8px; cursor:pointer; border:2px solid var(--border-color); transition:all .25s; user-select:none; }
+        .choice-card:hover { border-color:var(--accent-primary); transform:scale(1.03); }
+        .choice-card.selected { border-color:var(--accent-success); background:rgba(16,185,129,.12); }
+        .choice-card.wrong { border-color:var(--accent-error); background:rgba(239,68,68,.12); }
+        .choice-card strong { display:block; margin-bottom:6px; }
+        .choice-card p { font-size:.88em; color:var(--text-secondary); margin:0; }
+
+        /* Feedback */
+        .feedback-box { margin-top:14px; padding:14px; border-radius:8px; display:none; }
+        .feedback-box.show { display:block; animation:slideIn .3s ease; }
+        @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+        .feedback-box.success { background:rgba(16,185,129,.2); border-left:4px solid var(--accent-success); }
+        .feedback-box.error   { background:rgba(239,68,68,.2);  border-left:4px solid var(--accent-error); }
+
+        /* Concept-check single-select options */
+        .concept-check { background:var(--bg-tertiary); padding:18px; border-radius:8px; margin:18px 0; }
+        .concept-check h4 { color:var(--accent-warning); margin-bottom:12px; }
+        .check-option { padding:11px 14px; margin:7px 0; background:var(--bg-primary); border-radius:6px; border:2px solid var(--border-color); cursor:pointer; transition:all .25s; }
+        .check-option:hover { border-color:var(--accent-primary); }
+        .check-option.correct   { border-color:var(--accent-success); background:rgba(16,185,129,.12); }
+        .check-option.incorrect { border-color:var(--accent-error);   background:rgba(239,68,68,.12); }
+        .check-option.disabled  { pointer-events:none; }
+
+        .explanation { background:rgba(139,92,246,.1); padding:14px; border-radius:8px; margin-top:8px; border-left:4px solid var(--accent-secondary); display:none; }
+        .explanation.show { display:block; animation:fadeIn .3s ease; }
+
+        /* Tables */
+        table { width:100%; border-collapse:collapse; margin-top:12px; }
+        th,td { padding:11px; text-align:left; border-bottom:1px solid var(--border-color); }
+        th { background:var(--accent-primary); color:#fff; font-weight:600; }
+        tr:hover { background:var(--bg-tertiary); }
+
+        /* Component diagram */
+        .component-diagram { display:flex; justify-content:center; align-items:center; gap:28px; margin:26px 0; flex-wrap:wrap; }
+        .component-box { background:var(--bg-tertiary); padding:18px; border-radius:8px; border:3px solid var(--accent-primary); min-width:180px; text-align:center; }
+        .component-box h4 { color:var(--accent-primary); margin-bottom:8px; }
+        .arrow { font-size:2em; color:var(--accent-secondary); }
+
+        /* Navigation */
+        .navigation-buttons { display:flex; justify-content:space-between; margin-top:28px; padding-top:18px; border-top:1px solid var(--border-color); }
+        button { background:var(--accent-primary); color:#fff; border:none; padding:11px 22px; border-radius:6px; font-weight:600; cursor:pointer; transition:all .25s; font-family:'Inter',sans-serif; font-size:.95em; }
+        button:hover { background:var(--accent-secondary); transform:translateY(-2px); }
+        button.secondary { background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); }
+        button.secondary:hover { background:var(--bg-primary); border-color:var(--accent-primary); }
+
+        /* Completion screen */
+        .completion-hero { text-align:center; padding:40px 20px 28px; }
+        .completion-icon { font-size:5em; margin-bottom:12px; animation:popIn .4s ease; }
+        @keyframes popIn { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+        .completion-title { font-size:2.6em; background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:8px; }
+        .completion-subtitle { color:var(--text-secondary); font-size:1.15em; }
+
+        .completion-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:24px 0; }
+        .completion-card { background:var(--bg-tertiary); padding:22px; border-radius:10px; border:2px solid var(--border-color); transition:all .25s; }
+        .completion-card:hover { border-color:var(--accent-primary); transform:translateY(-4px); }
+        .completion-card-icon { font-size:2em; margin-bottom:10px; }
+        .completion-card h4 { color:var(--accent-primary); margin-bottom:6px; }
+        .completion-card p { color:var(--text-secondary); font-size:.92em; }
+
+        .recap-section { background:var(--bg-tertiary); padding:20px; border-radius:8px; margin:18px 0; }
+        .recap-section h3 { color:var(--accent-warning); margin-bottom:12px; }
+        .recap-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+        .recap-tag { background:var(--accent-primary); color:#fff; padding:6px 12px; border-radius:16px; font-size:.85em; }
+
+        /* Drag-and-drop matching */
+        .matching-container { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin:18px 0; }
+        .draggable-items { display:flex; flex-direction:column; gap:10px; }
+        .drag-item { background:var(--bg-tertiary); padding:14px; border-radius:8px; border:2px solid var(--border-color); cursor:move; transition:all .25s; user-select:none; }
+        .drag-item:hover { border-color:var(--accent-primary); }
+        .drag-item.dragging { opacity:0.5; }
+        .drop-zone { background:var(--bg-primary); padding:14px; border-radius:8px; border:2px dashed var(--border-color); min-height:60px; margin-bottom:10px; transition:all .25s; }
+        .drop-zone.drag-over { border-color:var(--accent-primary); background:rgba(99,102,241,.1); }
+        .drop-zone.correct { border-color:var(--accent-success); background:rgba(16,185,129,.1); }
+        .drop-zone.incorrect { border-color:var(--accent-error); background:rgba(239,68,68,.1); }
+        .drop-zone-label { font-weight:600; color:var(--accent-secondary); margin-bottom:8px; }
+
+        /* Data unit calculator */
+        .calculator-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin:18px 0; }
+        .calc-input { background:var(--bg-tertiary); padding:14px; border-radius:8px; }
+        .calc-input label { display:block; color:var(--text-secondary); margin-bottom:6px; font-size:.9em; }
+        .calc-input input { width:100%; background:var(--bg-primary); border:2px solid var(--border-color); color:var(--text-primary); padding:8px; border-radius:4px; font-family:'JetBrains Mono',monospace; }
+        .calc-result { background:var(--accent-primary); color:#fff; padding:14px; border-radius:8px; text-align:center; font-weight:600; font-size:1.1em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>💻 Computing Fundamentals - Part 1</h1>
+        <div class="subtitle">CompTIA Tech+ FC0-U71 Module 1: Lessons 1-5</div>
+    </header>
+
+    <div class="lesson-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <h2>📚 Part 1 Objectives</h2>
+            <ul class="concept-nav">
+                <li data-lesson="1" class="active">1. Computing Basics</li>
+                <li data-lesson="2">2. Data Units</li>
+                <li data-lesson="3">3. Processing Speed</li>
+                <li data-lesson="4">4. Motherboard & Components</li>
+                <li data-lesson="5">5. BIOS Functions</li>
+            </ul>
+            <div class="progress-indicator" id="progressIndicator">Lesson 1 of 5</div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <!-- LESSON 1: Computing Basics -->
+            <div class="lesson active" id="lesson1">
+                <h2>Lesson 1: The Four Functions of Computing</h2>
+                
+                <div class="key-concept">
+                    <strong>Core Principle:</strong> At a fundamental level, computers perform four essential operations: INPUT, PROCESSING, OUTPUT, and STORAGE.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>You're setting up a new workstation for a data analyst. She needs to understand how her computer processes information from start to finish. Help her identify the four core computing functions.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>The Input-Process-Output-Storage Cycle</h3>
+                    <div class="component-diagram">
+                        <div class="component-box">
+                            <h4>INPUT</h4>
+                            <p style="font-size:.85em;color:var(--text-secondary);">Keyboard, Mouse, Scanner</p>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="component-box">
+                            <h4>PROCESSING</h4>
+                            <p style="font-size:.85em;color:var(--text-secondary);">CPU executes instructions</p>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="component-box">
+                            <h4>OUTPUT</h4>
+                            <p style="font-size:.85em;color:var(--text-secondary);">Monitor, Printer, Speakers</p>
+                        </div>
+                        <div class="arrow">↓</div>
+                        <div class="component-box">
+                            <h4>STORAGE</h4>
+                            <p style="font-size:.85em;color:var(--text-secondary);">Hard Drive, SSD, Cloud</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-section">
+                    <h3>🎯 Interactive Challenge: Identify the Computing Functions</h3>
+                    <p>Select ALL computing activities that represent the four core functions. Choose exactly 4 items:</p>
+                    
+                    <div class="choice-grid" id="multiChoiceGrid">
+                        <div class="choice-card" data-correct="true">
+                            <strong>📥 Taking Input</strong>
+                            <p>User types on keyboard to enter data</p>
+                        </div>
+                        <div class="choice-card" data-correct="false">
+                            <strong>🔌 Connecting Cables</strong>
+                            <p>Plugging in peripheral devices</p>
+                        </div>
+                        <div class="choice-card" data-correct="true">
+                            <strong>⚙️ Processing Data</strong>
+                            <p>CPU performs calculations on data</p>
+                        </div>
+                        <div class="choice-card" data-correct="false">
+                            <strong>🔄 Updating Software</strong>
+                            <p>Installing operating system patches</p>
+                        </div>
+                        <div class="choice-card" data-correct="true">
+                            <strong>📤 Producing Output</strong>
+                            <p>Display shows results on monitor</p>
+                        </div>
+                        <div class="choice-card" data-correct="true">
+                            <strong>💾 Storing Data</strong>
+                            <p>Saving files to hard drive for later use</p>
+                        </div>
+                    </div>
+                    <div class="feedback-box" id="feedback1"></div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="2">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> Which component is responsible for PROCESSING in a computer system?</p>
+                    <div class="check-option">A) Hard Disk Drive</div>
+                    <div class="check-option">B) Central Processing Unit (CPU)</div>
+                    <div class="check-option">C) Random Access Memory (RAM)</div>
+                    <div class="check-option">D) Graphics Card</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> The CPU (Central Processing Unit) is the "brain" of the computer responsible for executing instructions and performing mathematical and logical operations on data. RAM provides temporary storage, the hard drive provides long-term storage, and the graphics card handles video processing.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LESSON 2: Data Units -->
+            <div class="lesson" id="lesson2">
+                <h2>Lesson 2: Understanding Data Units of Measure</h2>
+
+                <div class="key-concept">
+                    <strong>Data Measurement Hierarchy:</strong> Starting from the smallest unit (bit), data scales through bytes, kilobytes, megabytes, gigabytes, terabytes, to petabytes, with each step representing approximately 1,000 of the previous unit.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>A client is confused about storage capacity when purchasing a new computer. They need to understand data units to make an informed decision about whether a 512GB SSD is sufficient for their needs.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Data Units Conversion Chart</h3>
+                    <table>
+                        <tr>
+                            <th>Unit</th>
+                            <th>Symbol</th>
+                            <th>Size</th>
+                            <th>Approximate Storage Example</th>
+                        </tr>
+                        <tr>
+                            <td>Bit</td>
+                            <td>b</td>
+                            <td>0 or 1</td>
+                            <td>Single binary digit</td>
+                        </tr>
+                        <tr>
+                            <td>Byte</td>
+                            <td>B</td>
+                            <td>8 bits</td>
+                            <td>One character of text</td>
+                        </tr>
+                        <tr>
+                            <td>Kilobyte</td>
+                            <td>KB</td>
+                            <td>1,000 bytes</td>
+                            <td>Short email (no attachments)</td>
+                        </tr>
+                        <tr>
+                            <td>Megabyte</td>
+                            <td>MB</td>
+                            <td>1,000 KB</td>
+                            <td>High-quality photo</td>
+                        </tr>
+                        <tr>
+                            <td>Gigabyte</td>
+                            <td>GB</td>
+                            <td>1,000 MB</td>
+                            <td>HD movie (2 hours)</td>
+                        </tr>
+                        <tr>
+                            <td>Terabyte</td>
+                            <td>TB</td>
+                            <td>1,000 GB</td>
+                            <td>Entire music library (~250,000 songs)</td>
+                        </tr>
+                        <tr>
+                            <td>Petabyte</td>
+                            <td>PB</td>
+                            <td>1,000 TB</td>
+                            <td>Data center server storage</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="interactive-section">
+                    <h3>🧮 Interactive Data Unit Calculator</h3>
+                    <p>Convert between different data units:</p>
+                    <div class="calculator-grid">
+                        <div class="calc-input">
+                            <label>Enter value in Megabytes (MB):</label>
+                            <input type="number" id="mbInput" placeholder="e.g., 5000">
+                        </div>
+                        <div class="calc-result" id="calcResult">
+                            Enter a value to convert
+                        </div>
+                    </div>
+                    <p style="margin-top:12px;font-size:.9em;color:var(--text-secondary);">
+                        💡 Try entering 5000 MB to see how many GB that equals, or 1500 MB to see the conversion.
+                    </p>
+                </div>
+
+                <div class="concept-check single-q" data-answer="3">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> How many megabytes (MB) are in 2 gigabytes (GB)?</p>
+                    <div class="check-option">A) 200 MB</div>
+                    <div class="check-option">B) 20 MB</div>
+                    <div class="check-option">C) 2,000 MB</div>
+                    <div class="check-option">D) 20,000 MB</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> Since 1 GB = 1,000 MB, then 2 GB = 2,000 MB. Each step up the data unit hierarchy represents multiplication by 1,000.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LESSON 3: Processing Speed -->
+            <div class="lesson" id="lesson3">
+                <h2>Lesson 3: Processing Speed - Megahertz vs. Gigahertz</h2>
+
+                <div class="key-concept">
+                    <strong>Hertz Explained:</strong> Hertz (Hz) measures the number of electronic cycles per second. Megahertz (MHz) = 1 million cycles/second. Gigahertz (GHz) = 1 billion cycles/second. Higher frequency means faster processing capability.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>A customer is comparing two laptops: one with a 2.4 GHz processor and another with a 3600 MHz processor. They need help understanding which is faster and why processor speed matters.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Processor Speed Comparison</h3>
+                    <div class="data-structure">
+                        <div class="data-card">
+                            <h4>Megahertz (MHz)</h4>
+                            <p><strong>1 MHz = 1,000,000 cycles/second</strong></p>
+                            <div class="data-example">Example: 2400 MHz
+= 2,400,000,000 cycles/sec
+= 2.4 billion cycles/sec
+= 2.4 GHz</div>
+                        </div>
+                        <div class="data-card">
+                            <h4>Gigahertz (GHz)</h4>
+                            <p><strong>1 GHz = 1,000,000,000 cycles/second</strong></p>
+                            <div class="data-example">Example: 3.6 GHz
+= 3,600,000,000 cycles/sec
+= 3600 MHz</div>
+                        </div>
+                    </div>
+
+                    <div class="key-concept" style="margin-top:20px;">
+                        <strong>Real-World Impact:</strong> A 3.6 GHz processor can execute 3.6 billion cycles per second, making it faster than a 2.4 GHz processor. However, clock speed isn't the only factor in overall performance—core count, cache size, and architecture also matter.
+                    </div>
+                </div>
+
+                <div class="interactive-section">
+                    <h3>🎯 Speed Comparison Challenge</h3>
+                    <p>Rank these processors from SLOWEST to FASTEST by dragging them into the correct order:</p>
+                    <div id="speedRanking" style="background:var(--bg-tertiary);padding:20px;border-radius:8px;">
+                        <div class="drop-zone" data-correct="3200">
+                            <div class="drop-zone-label">1. Slowest</div>
+                        </div>
+                        <div class="drop-zone" data-correct="2800">
+                            <div class="drop-zone-label">2. Middle Speed</div>
+                        </div>
+                        <div class="drop-zone" data-correct="3800">
+                            <div class="drop-zone-label">3. Fastest</div>
+                        </div>
+                        <hr style="margin:20px 0;border-color:var(--border-color);">
+                        <div class="draggable-items" id="speedItems">
+                            <div class="drag-item" draggable="true" data-speed="2800">2.8 GHz Processor</div>
+                            <div class="drag-item" draggable="true" data-speed="3200">3200 MHz Processor</div>
+                            <div class="drag-item" draggable="true" data-speed="3800">3.8 GHz Processor</div>
+                        </div>
+                    </div>
+                    <button id="checkSpeed" style="margin-top:14px;">Check Answer</button>
+                    <div class="feedback-box" id="feedback3"></div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="2">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> What does a processor speed of 3.2 GHz indicate?</p>
+                    <div class="check-option">A) The processor can store 3.2 gigabytes of data</div>
+                    <div class="check-option">B) The processor executes 3.2 billion cycles per second</div>
+                    <div class="check-option">C) The processor has 3.2 processing cores</div>
+                    <div class="check-option">D) The processor uses 3.2 watts of power</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> GHz (gigahertz) measures clock speed—the number of cycles per second. A 3.2 GHz processor completes 3.2 billion cycles every second. This is different from core count, storage capacity, or power consumption.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LESSON 4: Motherboard & Components -->
+            <div class="lesson" id="lesson4">
+                <h2>Lesson 4: Motherboards, CPUs, and RAM</h2>
+
+                <div class="key-concept">
+                    <strong>The Three Pillars:</strong> The motherboard provides electrical pathways connecting all components. The CPU performs mathematical and logical operations. RAM provides temporary, high-speed storage for active processes.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>You're upgrading a workstation and need to explain to a junior technician why all three components—motherboard, CPU, and RAM—must be compatible and work together seamlessly.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>Component Roles and Interactions</h3>
+                    <div class="data-structure">
+                        <div class="data-card">
+                            <h4>🔌 Motherboard</h4>
+                            <p><strong>Function:</strong> System backbone</p>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li>Connects all components</li>
+                                <li>Provides power distribution</li>
+                                <li>Houses chipset for communication</li>
+                                <li>Contains expansion slots</li>
+                            </ul>
+                        </div>
+                        <div class="data-card">
+                            <h4>🧠 CPU (Central Processing Unit)</h4>
+                            <p><strong>Function:</strong> Processing engine</p>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li>Executes program instructions</li>
+                                <li>Performs calculations</li>
+                                <li>Makes logical decisions</li>
+                                <li>Controls system operations</li>
+                            </ul>
+                        </div>
+                        <div class="data-card">
+                            <h4>⚡ RAM (Random Access Memory)</h4>
+                            <p><strong>Function:</strong> Temporary workspace</p>
+                            <ul style="margin-top:8px;font-size:.88em;color:var(--text-secondary);padding-left:20px;">
+                                <li>Stores active program data</li>
+                                <li>Provides fast data access</li>
+                                <li>Volatile (cleared when powered off)</li>
+                                <li>Works directly with CPU</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-section">
+                    <h3>🔗 Match Components to Their Functions</h3>
+                    <p>Drag each function to the correct component:</p>
+                    <div class="matching-container">
+                        <div>
+                            <div class="drop-zone" data-correct="motherboard">
+                                <div class="drop-zone-label">Motherboard Functions:</div>
+                            </div>
+                            <div class="drop-zone" data-correct="cpu">
+                                <div class="drop-zone-label">CPU Functions:</div>
+                            </div>
+                            <div class="drop-zone" data-correct="ram">
+                                <div class="drop-zone-label">RAM Functions:</div>
+                            </div>
+                        </div>
+                        <div class="draggable-items" id="componentItems">
+                            <div class="drag-item" draggable="true" data-component="cpu">Performs mathematical operations</div>
+                            <div class="drag-item" draggable="true" data-component="motherboard">Connects all system components</div>
+                            <div class="drag-item" draggable="true" data-component="ram">Temporary storage cleared at shutdown</div>
+                            <div class="drag-item" draggable="true" data-component="cpu">Executes program instructions</div>
+                            <div class="drag-item" draggable="true" data-component="ram">Fast access for active applications</div>
+                            <div class="drag-item" draggable="true" data-component="motherboard">Provides electrical pathways for data</div>
+                        </div>
+                    </div>
+                    <button id="checkComponents" style="margin-top:14px;">Check Answers</button>
+                    <div class="feedback-box" id="feedback4"></div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="3">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> What happens to data stored in RAM when you shut down your computer?</p>
+                    <div class="check-option">A) It is permanently saved to the hard drive</div>
+                    <div class="check-option">B) It is transferred to the CPU cache</div>
+                    <div class="check-option">C) It is completely erased because RAM is volatile</div>
+                    <div class="check-option">D) It remains in RAM until overwritten</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> RAM is volatile memory, meaning it requires continuous power to maintain data. When the computer shuts down, all data in RAM is lost. This is why you must save your work to non-volatile storage (like a hard drive or SSD) before powering off.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LESSON 5: BIOS Functions -->
+            <div class="lesson" id="lesson5">
+                <h2>Lesson 5: Understanding the BIOS</h2>
+
+                <div class="key-concept">
+                    <strong>BIOS Role:</strong> The Basic Input/Output System (BIOS) is firmware that initializes hardware during boot-up and provides runtime services. It runs POST (Power-On Self-Test) and stores critical system configuration.
+                </div>
+
+                <div class="problem-scenario">
+                    <h3>📋 Scenario</h3>
+                    <p>A computer won't boot, and you need to access the BIOS to troubleshoot. The user asks what the BIOS does and why it's important for system startup.</p>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>BIOS Boot Sequence</h3>
+                    <div class="component-diagram">
+                        <div class="component-box" style="background:rgba(99,102,241,.1);">
+                            <h4>1. Power On</h4>
+                            <p style="font-size:.85em;color:var(--text-secondary);">User presses power button</p>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="component-box" style="background:rgba(99,102,241,.1);">
+                            <h4>2. BIOS Loads</h4>
+                            <p style="font-size:.85em;color:var(--text-secondary);">Firmware initializes from ROM</p>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="component-box" style="background:rgba(99,102,241,.1);">
+                            <h4>3. POST Runs</h4>
+                            <p style="font-size:.85em;color:var(--text-secondary);">Tests hardware components</p>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="component-box" style="background:rgba(99,102,241,.1);">
+                            <h4>4. Boot Device</h4>
+                            <p style="font-size:.85em;color:var(--text-secondary);">Loads OS from configured drive</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visual-demo">
+                    <h3>BIOS Configuration Settings</h3>
+                    <table>
+                        <tr>
+                            <th>Setting Category</th>
+                            <th>What It Controls</th>
+                        </tr>
+                        <tr>
+                            <td>System Date & Time</td>
+                            <td>Sets the internal clock for the computer</td>
+                        </tr>
+                        <tr>
+                            <td>Boot Order</td>
+                            <td>Determines which device to load the OS from (HDD, SSD, USB, DVD)</td>
+                        </tr>
+                        <tr>
+                            <td>Memory Configuration</td>
+                            <td>Detects and configures installed RAM</td>
+                        </tr>
+                        <tr>
+                            <td>CPU Settings</td>
+                            <td>Manages processor frequency and voltage</td>
+                        </tr>
+                        <tr>
+                            <td>Security</td>
+                            <td>BIOS passwords, Secure Boot settings</td>
+                        </tr>
+                        <tr>
+                            <td>Hardware Monitoring</td>
+                            <td>Temperature sensors, fan speeds, voltages</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="concept-check single-q" data-answer="2">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> What is the primary function of POST (Power-On Self-Test) during the boot process?</p>
+                    <div class="check-option">A) To load the operating system into RAM</div>
+                    <div class="check-option">B) To test and verify that hardware components are functioning properly</div>
+                    <div class="check-option">C) To install device drivers for peripherals</div>
+                    <div class="check-option">D) To configure network settings</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> POST (Power-On Self-Test) is a diagnostic routine run by the BIOS that checks the CPU, RAM, keyboard, disk drives, and other hardware to ensure they're working correctly before attempting to load the operating system. If POST detects a problem, it typically produces beep codes to indicate the issue.
+                    </div>
+                </div>
+
+                <div class="concept-check single-q" data-answer="3">
+                    <h4>✅ Concept Check</h4>
+                    <p><strong>Question:</strong> Where would you configure which device the computer boots from (hard drive vs. USB drive)?</p>
+                    <div class="check-option">A) Operating System Control Panel</div>
+                    <div class="check-option">B) Device Manager</div>
+                    <div class="check-option">C) BIOS settings</div>
+                    <div class="check-option">D) Windows Registry</div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong> The boot order (also called boot sequence or boot priority) is configured in the BIOS settings. This determines which storage device the system checks first when loading the operating system. You access BIOS during startup (typically by pressing Del, F2, F10, or Esc depending on the manufacturer).
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPLETION SCREEN -->
+            <div class="lesson" id="lessonComplete">
+                <div class="completion-hero">
+                    <div class="completion-icon">🎓</div>
+                    <div class="completion-title">Part 1 Complete!</div>
+                    <div class="completion-subtitle">Excellent work on the foundational concepts</div>
+                </div>
+
+                <div class="completion-grid">
+                    <div class="completion-card">
+                        <div class="completion-card-icon">💡</div>
+                        <h4>Core Concepts Mastered</h4>
+                        <p>You now understand the four fundamental computing operations and how they work together.</p>
+                    </div>
+                    <div class="completion-card">
+                        <div class="completion-card-icon">📊</div>
+                        <h4>Data Units Expertise</h4>
+                        <p>You can confidently convert between bits, bytes, and larger units up to petabytes.</p>
+                    </div>
+                    <div class="completion-card">
+                        <div class="completion-card-icon">⚡</div>
+                        <h4>Processing Knowledge</h4>
+                        <p>You understand MHz vs. GHz and how processing speed impacts performance.</p>
+                    </div>
+                    <div class="completion-card">
+                        <div class="completion-card-icon">🔧</div>
+                        <h4>Hardware Foundations</h4>
+                        <p>You can explain the roles of motherboards, CPUs, RAM, and BIOS in computer systems.</p>
+                    </div>
+                </div>
+
+                <div class="recap-section">
+                    <h3>📝 Key Terms Reviewed in Part 1</h3>
+                    <div class="recap-tags">
+                        <span class="recap-tag">INPUT</span>
+                        <span class="recap-tag">PROCESSING</span>
+                        <span class="recap-tag">OUTPUT</span>
+                        <span class="recap-tag">STORAGE</span>
+                        <span class="recap-tag">BIT</span>
+                        <span class="recap-tag">BYTE</span>
+                        <span class="recap-tag">MEGAHERTZ</span>
+                        <span class="recap-tag">GIGAHERTZ</span>
+                        <span class="recap-tag">MOTHERBOARD</span>
+                        <span class="recap-tag">CPU</span>
+                        <span class="recap-tag">RAM</span>
+                        <span class="recap-tag">VOLATILE MEMORY</span>
+                        <span class="recap-tag">BIOS</span>
+                        <span class="recap-tag">POST</span>
+                        <span class="recap-tag">BOOT ORDER</span>
+                    </div>
+                </div>
+
+                <div class="key-concept" style="margin-top:24px;">
+                    <strong>🎯 Ready for Part 2:</strong> Continue your CompTIA Tech+ preparation with Part 2, which covers storage technologies, graphics processing, optical media, expansion devices, and power/cooling systems. Review any lessons where you had difficulty before moving forward.
+                </div>
+
+                <div class="navigation-buttons" style="justify-content:center;margin-top:30px;">
+                    <button class="secondary" id="btnRestart">↺ Restart from Lesson 1</button>
+                </div>
+            </div>
+
+            <!-- NAVIGATION -->
+            <div class="navigation-buttons" id="mainNav">
+                <button class="secondary" id="btnPrev">← Previous</button>
+                <button id="btnNext">Next →</button>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────
+var currentLesson = 1;
+var totalLessons  = 5;
+var completedLessons = {};
+
+// Multi-select state for Lesson 1
+var multiSelected = [];
+var multiMax      = 4;
+
+// ─── Navigation ──────────────────────────────────
+function showLesson(n) {
+    document.querySelectorAll('.lesson').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('lesson' + n).classList.add('active');
+    document.querySelectorAll('.concept-nav li').forEach(function(el){ el.classList.remove('active'); });
+    document.querySelector('[data-lesson="' + n + '"]').classList.add('active');
+    document.getElementById('progressIndicator').textContent = 'Lesson ' + n + ' of ' + totalLessons;
+    currentLesson = n;
+    window.scrollTo(0, 0);
+}
+
+document.getElementById('btnNext').addEventListener('click', function(){
+    completedLessons[currentLesson] = true;
+    document.querySelector('[data-lesson="' + currentLesson + '"]').classList.add('completed');
+    if (currentLesson < totalLessons) {
+        showLesson(currentLesson + 1);
+    } else {
+        document.querySelectorAll('.lesson').forEach(function(el){ el.classList.remove('active'); });
+        document.getElementById('lessonComplete').classList.add('active');
+        document.getElementById('mainNav').style.display = 'none';
+        document.querySelectorAll('.concept-nav li').forEach(function(el){ el.classList.remove('active'); });
+        document.getElementById('progressIndicator').textContent = 'Part 1 Complete! ✓';
+        window.scrollTo(0, 0);
+    }
+});
+
+document.getElementById('btnPrev').addEventListener('click', function(){
+    if (currentLesson > 1) showLesson(currentLesson - 1);
+});
+
+document.getElementById('btnRestart').addEventListener('click', function(){
+    document.getElementById('mainNav').style.display = 'flex';
+    showLesson(1);
+});
+
+document.querySelectorAll('.concept-nav li').forEach(function(li){
+    li.addEventListener('click', function(){
+        showLesson(parseInt(this.getAttribute('data-lesson')));
+    });
+});
+
+// ─── Lesson 1: Multi-select (pick exactly 4) ────
+(function(){
+    var cards = document.querySelectorAll('#multiChoiceGrid .choice-card');
+    cards.forEach(function(card, i){
+        card.addEventListener('click', function(){
+            var id = String(i);
+            var isCorrect = (card.getAttribute('data-correct') === 'true');
+            var idx = multiSelected.indexOf(id);
+
+            if (idx > -1) {
+                card.classList.remove('selected', 'wrong');
+                multiSelected.splice(idx, 1);
+                document.getElementById('feedback1').classList.remove('show');
+                return;
+            }
+
+            if (multiSelected.length >= multiMax) {
+                var fb = document.getElementById('feedback1');
+                fb.className = 'feedback-box error show';
+                fb.innerHTML = '❌ You can only select ' + multiMax + ' options. Deselect one first.';
+                return;
+            }
+
+            card.classList.add(isCorrect ? 'selected' : 'wrong');
+            multiSelected.push(id);
+
+            if (multiSelected.length === multiMax) {
+                var correctCount = 0;
+                multiSelected.forEach(function(sid){
+                    if (cards[parseInt(sid)].getAttribute('data-correct') === 'true') correctCount++;
+                });
+                var fb = document.getElementById('feedback1');
+                if (correctCount === multiMax) {
+                    fb.className = 'feedback-box success show';
+                    fb.innerHTML = '✅ Perfect! You correctly identified the four core computing functions: INPUT (keyboard/mouse), PROCESSING (CPU calculations), OUTPUT (display results), and STORAGE (save to hard drive). These are the fundamental operations all computers perform.';
+                } else {
+                    fb.className = 'feedback-box error show';
+                    fb.innerHTML = '❌ Not quite. Focus on the four essential operations: taking input, processing data, producing output, and storing information long-term.';
+                }
+            } else {
+                document.getElementById('feedback1').classList.remove('show');
+            }
+        });
+    });
+})();
+
+// ─── Lesson 2: Data Unit Calculator ─────────────
+document.getElementById('mbInput').addEventListener('input', function(){
+    var mb = parseFloat(this.value);
+    var resultDiv = document.getElementById('calcResult');
+    if (isNaN(mb) || mb <= 0) {
+        resultDiv.textContent = 'Enter a valid number';
+        return;
+    }
+    var gb = (mb / 1000).toFixed(2);
+    var kb = (mb * 1000).toFixed(0);
+    resultDiv.innerHTML = '<strong>' + mb + ' MB</strong> equals:<br>' + 
+                          gb + ' GB (gigabytes)<br>' + 
+                          kb + ' KB (kilobytes)';
+});
+
+// ─── Lesson 3: Speed Ranking Drag & Drop ─────────
+(function(){
+    var draggedItem = null;
+    var items = document.querySelectorAll('#speedItems .drag-item');
+    var zones = document.querySelectorAll('#speedRanking .drop-zone');
+
+    items.forEach(function(item){
+        item.addEventListener('dragstart', function(e){
+            draggedItem = this;
+            this.classList.add('dragging');
+        });
+        item.addEventListener('dragend', function(){
+            this.classList.remove('dragging');
+        });
+    });
+
+    zones.forEach(function(zone){
+        zone.addEventListener('dragover', function(e){ e.preventDefault(); });
+        zone.addEventListener('drop', function(e){
+            e.preventDefault();
+            if (draggedItem && this.classList.contains('drop-zone')) {
+                this.appendChild(draggedItem);
+            }
+        });
+    });
+
+    document.getElementById('checkSpeed').addEventListener('click', function(){
+        var correct = true;
+        zones.forEach(function(zone){
+            var expectedSpeed = zone.getAttribute('data-correct');
+            var droppedItem = zone.querySelector('.drag-item');
+            if (!droppedItem || droppedItem.getAttribute('data-speed') !== expectedSpeed) {
+                correct = false;
+                zone.classList.add('incorrect');
+                zone.classList.remove('correct');
+            } else {
+                zone.classList.add('correct');
+                zone.classList.remove('incorrect');
+            }
+        });
+
+        var fb = document.getElementById('feedback3');
+        if (correct) {
+            fb.className = 'feedback-box success show';
+            fb.innerHTML = '✅ Correct! 3200 MHz (3.2 GHz) is slowest, 2.8 GHz is middle, and 3.8 GHz is fastest. Remember: 1 GHz = 1,000 MHz, so 3200 MHz = 3.2 GHz.';
+        } else {
+            fb.className = 'feedback-box error show';
+            fb.innerHTML = '❌ Not quite. Convert MHz to GHz first (divide by 1,000), then compare the values.';
+        }
+    });
+})();
+
+// ─── Lesson 4: Component Matching ────────────────
+(function(){
+    var draggedItem = null;
+    var items = document.querySelectorAll('#componentItems .drag-item');
+    var zones = document.querySelectorAll('.matching-container .drop-zone');
+
+    items.forEach(function(item){
+        item.addEventListener('dragstart', function(e){
+            draggedItem = this;
+            this.classList.add('dragging');
+        });
+        item.addEventListener('dragend', function(){
+            this.classList.remove('dragging');
+        });
+    });
+
+    zones.forEach(function(zone){
+        zone.addEventListener('dragover', function(e){ e.preventDefault(); });
+        zone.addEventListener('drop', function(e){
+            e.preventDefault();
+            if (draggedItem) {
+                this.appendChild(draggedItem);
+            }
+        });
+    });
+
+    document.getElementById('checkComponents').addEventListener('click', function(){
+        var correct = true;
+        var expectedCounts = { motherboard: 2, cpu: 2, ram: 2 };
+        var actualCounts = { motherboard: 0, cpu: 0, ram: 0 };
+
+        zones.forEach(function(zone){
+            var expectedType = zone.getAttribute('data-correct');
+            var droppedItems = zone.querySelectorAll('.drag-item');
+            
+            droppedItems.forEach(function(item){
+                var itemType = item.getAttribute('data-component');
+                if (itemType === expectedType) {
+                    actualCounts[expectedType]++;
+                } else {
+                    correct = false;
+                }
+            });
+        });
+
+        // Check if each zone has exactly 2 correct items
+        if (actualCounts.motherboard !== 2 || actualCounts.cpu !== 2 || actualCounts.ram !== 2) {
+            correct = false;
+        }
+
+        zones.forEach(function(zone){
+            zone.classList.remove('correct', 'incorrect');
+            var expectedType = zone.getAttribute('data-correct');
+            var droppedItems = zone.querySelectorAll('.drag-item');
+            var zoneCorrect = true;
+
+            droppedItems.forEach(function(item){
+                if (item.getAttribute('data-component') !== expectedType) {
+                    zoneCorrect = false;
+                }
+            });
+
+            if (zoneCorrect && droppedItems.length === 2) {
+                zone.classList.add('correct');
+            } else {
+                zone.classList.add('incorrect');
+            }
+        });
+
+        var fb = document.getElementById('feedback4');
+        if (correct) {
+            fb.className = 'feedback-box success show';
+            fb.innerHTML = '✅ Excellent! You correctly matched all components to their functions. The motherboard connects components and provides pathways, the CPU performs operations, and RAM provides fast temporary storage.';
+        } else {
+            fb.className = 'feedback-box error show';
+            fb.innerHTML = '❌ Review the matches. Each component should have exactly 2 functions. Think about which component performs each specific function.';
+        }
+    });
+})();
+
+// ─── Single-select questions (all lessons) ─
+(function(){
+    document.querySelectorAll('.single-q').forEach(function(qBlock){
+        var answer = qBlock.getAttribute('data-answer');
+        var options = qBlock.querySelectorAll('.check-option');
+        var explanation = qBlock.querySelector('.explanation');
+        
+        options.forEach(function(opt, idx){
+            opt.addEventListener('click', function(){
+                if (this.classList.contains('disabled')) return;
+                
+                options.forEach(function(o){ o.classList.add('disabled'); });
+                
+                var chosen = idx + 1;
+                if (String(chosen) === answer) {
+                    this.classList.add('correct');
+                } else {
+                    this.classList.add('incorrect');
+                    options[parseInt(answer) - 1].classList.add('correct');
+                }
+                
+                if (explanation) {
+                    explanation.classList.add('show');
+                }
+            });
+        });
+    });
+})();
+</script>
+
+</body>
+</html>
